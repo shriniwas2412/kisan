@@ -1,0 +1,19 @@
+# Placeholders only. Fill in after `wrangler d1 create kisan`. Not deployed from here.
+name = "kisan-server"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kisan"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[vars]
+# Comma-separated origins allowed to call the API with cookies (the web app).
+ALLOWED_ORIGINS = "http://localhost:5173"
+MANDI_LIMIT = "10"
+
+# Secrets (set with `wrangler secret put`, never in this file):
+#   JWT_SECRET       random 32+ bytes
+#   DATA_GOV_IN_KEY  your own free data.gov.in key

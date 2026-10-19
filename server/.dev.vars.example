@@ -1,0 +1,5 @@
+# Copy to .dev.vars (git-ignored) for local runs.
+JWT_SECRET=
+DATA_GOV_IN_KEY=
+ALLOWED_ORIGINS=http://localhost:5173
+MANDI_LIMIT=10

@@ -1,0 +1,24 @@
+{
+  "name": "kisan-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.dev.vars src/node-dev.ts",
+    "dev:worker": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "db:migrate:local": "wrangler d1 migrations apply kisan --local"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "hono": "4.13.13"
+  },
+  "devDependencies": {
+    "@hono/node-server": "2.1.5",
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

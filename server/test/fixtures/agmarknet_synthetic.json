@@ -1,0 +1,16 @@
+{
+  "_note": "SYNTHETIC. Same shape as a data.gov.in mandi response; names and prices are made up for tests and are not real market data.",
+  "index_name": "9ef84268-d588-465a-a308-a864a43d0070",
+  "title": "Current Daily Price of Various Commodities from Various Markets (Mandi)",
+  "updated_date": "2026-10-19T18:01:03Z",
+  "total": 12,
+  "count": 4,
+  "limit": "10",
+  "offset": "0",
+  "records": [
+    { "state": "Test State", "district": "Test District", "market": "Test Mandi A", "commodity": "Test Grain", "variety": "Other", "grade": "FAQ", "arrival_date": "19/10/2026", "min_price": 1000, "max_price": 1200, "modal_price": 1100 },
+    { "state": "Test State", "district": "Test District", "market": "Test Mandi B", "commodity": "Test Grain", "variety": "Other", "grade": "FAQ", "arrival_date": "18/10/2026", "min_price": "900", "max_price": "1150", "modal_price": "1000" },
+    { "state": "Test State", "district": "Test District", "market": "Test Mandi C", "commodity": "Test Grain", "variety": "Other", "grade": "FAQ", "arrival_date": "19/10/2026", "min_price": 0, "max_price": 0, "modal_price": 0 },
+    { "state": "Test State", "district": "Test District", "market": "Test Mandi D", "commodity": "Test Grain", "variety": "Other", "grade": "FAQ", "arrival_date": "2026-10-19", "min_price": 1000, "max_price": 1200, "modal_price": 1100 }
+  ]
+}
