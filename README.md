@@ -1,0 +1,147 @@
+# Kisan
+
+An offline-first web app for farmers and the field workers who visit them in Madhya Pradesh, Chhattisgarh, Vidarbha, Gujarat and Uttar Pradesh. Hindi by default, English one tap away. Works on low-cost Android phones in the browser and installs to the home screen.
+
+There are two views:
+
+- **Farmer (no login):** big tiles for today's mandi rate for their crops, weather, an irrigation tip, a leaf check, scheme cards and sowing times.
+- **Field worker:** farmer list, onboarding with a **mandatory consent step**, visit timeline per farmer, paste-from-spreadsheet import (checked against the database schema), manual mandi prices, and sync status. Everything works offline on the phone; signing in is only needed to sync with the team server.
+
+This replaces my earlier prototypes. The old Flutter app was a UI mock-up: its "disease results" were fixed sample text and it had no model inside. This app runs a real classifier and real weather maths, and it says plainly where they stop being useful.
+
+## What it does, and its limits
+
+### Mandi rates
+
+- Source: data.gov.in, "Current Daily Price of Various Commodities from Various Markets (Mandi)" (Agmarknet), resource `9ef84268-d588-465a-a308-a864a43d0070`. Prices are in Rs./Quintal as Agmarknet publishes them.
+- The server proxies the API (it keeps the key off the phone and avoids CORS). It caches each query in D1 for 6 hours.
+- If Agmarknet does not answer, the app shows the last good snapshot, marked as old, with its date. If there is no snapshot, it says **"आज का भाव उपलब्ध नहीं"** (today's rate is not available). It never makes up, interpolates or carries a price forward as if it were today's. Tests: `server/test/mandi.test.ts`.
+- The phone also keeps its last answer, so with no internet it still shows the saved rates with the date they were saved.
+- Commodity names in the picker are the API's own strings, taken from real responses, not a guessed list.
+- Field workers can note a price they saw at the mandi. Those prices carry a separate "seen by field worker" badge and are never mixed with Agmarknet rows.
+- **Status, verified on 2026-10-19/20:** one live call through the proxy with the portal's public sample key (Madhya Pradesh, Bhopal) returned rows with the documented fields (`state, district, market, commodity, variety, grade, arrival_date, min_price, max_price, modal_price`). The sample key is limited; production needs your own free key from data.gov.in as the `DATA_GOV_IN_KEY` secret. Tests use synthetic fixtures, never live calls.
+- District names for the preset places are sent as filters. If Agmarknet spells a district differently, the API returns nothing and the app says "not available" rather than guessing.
+
+### Leaf check
+
+The model is the MobileNetV3-Small classifier from my kisan-agent project, trained on PlantDoc (28 classes) and exported to ONNX (6.2 MB file in `web/public/model/`). It runs in the browser with onnxruntime-web, which is loaded only when a check is run.
+
+Measured on the PlantDoc test split (236 images), from the ONNX evaluation report in `web/src/core/data/leaf_eval.json`:
+
+| | |
+|---|---|
+| Top-1 accuracy | 42.8% |
+| Top-3 accuracy | 77.1% |
+| Photos where confidence ≥ 0.6 | 28.8% |
+| Accuracy on those | 76.5% |
+
+`web/src/core/leaf.test.ts` checks that the numbers shown in the app come from that report and that this README states them. (The per-photo predictions were not saved when the report was made, so the test checks against the report, it does not re-run the evaluation.)
+
+How the app uses it:
+
+- **Crop first.** The model only knows apple, bell pepper, blueberry, cherry, corn, grape, peach, potato, raspberry, squash, strawberry, tomato, and a healthy soybean leaf. There are **no wheat, rice, cotton, gram (chana) or soybean disease classes**, and those are the main crops where this app is meant to be used. For those crops the app says "not supported yet" and does not run the model.
+- It shows the top 3 as **possible**, never as a diagnosis. Below 0.6 confidence it says it is not sure. If its best guess is a different plant than the one picked, it asks for a clearer photo.
+- Every result ends with "show the leaf to your KVK or agri officer". The advice text is generic and never gives a spray or dose.
+- PlantDoc is web-scraped photos. The model has **not** been tested on fields in MP or anywhere else in India.
+- Preprocessing matches training exactly (short side to 256, centre crop 224, ImageNet normalisation). The browser's canvas resize changes pixels enough to flip answers, so `leaf.ts` ports Pillow's bilinear resample; a test checks it against Pillow output byte for byte.
+
+### Irrigation and weather
+
+- Weather and reference evapotranspiration (ET₀, FAO-56 Penman-Monteith) come from Open-Meteo (free, no key), cached on the phone for 3 hours.
+- Advice is a FAO-56 soil-water balance: ETc = Kc × ET₀, minus useful rain (80% of rain above 2 mm), compared with readily available water (0.5 × TAW × root depth). Kc values are from FAO-56 Table 12 and TAW from Table 19, rounded. Paddy gets a keep-standing-water message. Tests: `web/src/core/irrigation.test.ts`.
+- It is a rule of thumb. It ignores salinity, mulching and drip efficiency, and the app tells farmers to check soil moisture by hand first.
+
+### Sowing times and schemes
+
+- Sowing windows are static JSON (`web/src/core/data/crop_calendar.json`). Every entry has a source URL and the date it was checked; the app drops any entry without one (tested). Right now there are three entries (wheat, gram, soybean), each read from a Government of India Vikaspedia package-of-practices page on 2026-10-20. More crops need a source before they are added.
+- Scheme cards: PM-KISAN, PMFBY, Soil Health Card, Kisan Credit Card and PM-KUSUM, each with its official link and the date it was checked. The text is a short summary of the official page. The app makes no eligibility claims and sends people to the official site or agriculture office.
+
+### Farmer records, consent and sync
+
+- A farmer cannot be saved without a consent record (who gave it, how, the date, and what it covers). The server refuses a farmer row unless a consent row with `scope_store = 1` exists for that farmer and has not been withdrawn (tested). "Withdraw consent" marks the consent as withdrawn and deletes the farmer and their visits.
+- Pasted spreadsheet rows use the same column names as the database. Every value is checked against the schema; bad rows are listed by line with the reason and are never "fixed" automatically. Farmers need a matching consent row in the same paste (or already on the phone).
+- Sync is a CRDT: each record is a last-writer-wins map with hybrid logical clock stamps per field, so two phones editing different fields of the same farmer offline both keep their changes, whatever order they sync in (randomised test merges 5 phones in 30 orders). The server merges the same way and uses its own sequence number as the pull cursor. Stamps more than a day in the future (a phone with a wrong clock) are refused.
+- Auth: email + password, PBKDF2-SHA256 (100,000 iterations, the Workers maximum) and a signed JWT in an httpOnly, SameSite=Lax cookie. Roles are `field_worker` and `admin`. The first account becomes admin; after that only an admin can add accounts.
+
+## Run it locally
+
+Node 23.6 or newer (TypeScript runs natively in Node; tests use `node --test`).
+
+```bash
+cd server && npm install
+cp .dev.vars.example .dev.vars   # set JWT_SECRET (32+ chars); DATA_GOV_IN_KEY is optional
+cd ../web && npm install && npm run build
+cd ../server && npm run dev      # API + built app on http://localhost:8787
+```
+
+`npm run dev` in `server/` runs the same Hono app on plain Node with a local SQLite file, so no wrangler or Docker is needed on a small machine. For live editing of the UI, run `npm run dev` in `web/` instead (Vite proxies `/api` to port 8787).
+
+Create the first (admin) account:
+
+```bash
+curl -X POST localhost:8787/api/auth/register -H 'content-type: application/json' -d '{"name":"Your Name","email":"you@example.org","password":"a-long-password"}'
+```
+
+Tests:
+
+```bash
+cd web && npm test      # leaf, irrigation, mandi view, CSV import, calendar/schemes, CRDT, schema
+cd server && npm test   # mandi proxy cache + stale fallback, auth, sync + consent rules
+```
+
+### Deploy (not done from here)
+
+- API: Cloudflare Workers + D1. `wrangler d1 create kisan`, put the id in `server/wrangler.toml`, `wrangler d1 migrations apply kisan`, `wrangler secret put JWT_SECRET` and `DATA_GOV_IN_KEY`, then `wrangler deploy`. There is no cron: mandi prices refresh lazily when someone asks.
+- Web: any static host (Cloudflare Pages, GitHub Pages) from `web/dist`. Serve the API on the same site (for example `app.example.org` and `api.example.org`), because the session cookie is SameSite=Lax.
+- D1 free tier: since 2026-09-01 the daily read/write limits are enforced and queries fail until midnight UTC once they are hit. That is fine for a pilot with about a hundred farmers, not for more.
+
+## Architecture
+
+```
+ phone (PWA, Preact)                                server (Hono)                  outside
+ ┌───────────────────────────────┐                  ┌─────────────────────┐
+ │ ui/      farmer + field worker│   /api/sync      │ routes/sync.ts      │
+ │ core/    leaf, irrigation,    │ ───────────────▶ │  LWW merge, consent │──▶ D1 (SQLite)
+ │          mandi view, import   │                  │ routes/auth.ts      │
+ │ data/    IndexedDB + outbox,  │   /api/mandi     │ routes/mandi.ts     │──▶ data.gov.in
+ │          HLC stamps, caches   │ ───────────────▶ │  6 h cache, stale   │    (Agmarknet)
+ │ model/   ONNX leaf model      │                  └─────────────────────┘
+ │ sw.js    offline shell        │ ──────────────────────────────────────────▶ Open-Meteo
+ └───────────────────────────────┘ ──── onnxruntime-web (pinned CDN build, cached) 
+          shared/  schema.ts + sync.ts (CRDT), used by both sides
+```
+
+```
+web/src/core/     pure logic with tests (no DOM)
+web/src/data/     IndexedDB store, sync client, API calls with on-device fallbacks, model loader
+web/src/ui/       screens
+web/public/       manifest, service worker, model/
+server/src/       app.ts, routes/, lib/ (agmarknet client, crypto, D1 types)
+server/migrations D1 schema
+shared/           schema rules and the CRDT, imported by web and server
+```
+
+## Known limitations
+
+- Not an expert system and not a diagnosis tool. Leaf results are possibilities from a model with the accuracy above, trained on crops that are mostly not grown by the farmers this app is for.
+- The first leaf check needs internet once, to download onnxruntime-web 1.20.1 (11.3 MB, mostly the WASM file) and cache it; after that it works offline.
+- Browsers clear site data under storage pressure. Records on a phone that never syncs can be lost; syncing is the backup.
+- Manual mandi prices are whatever a field worker typed. They are labelled as such and not checked against Agmarknet.
+- Only nine preset places have weather coordinates and mandi filters.
+
+## References
+
+1. Allen, R. G., Pereira, L. S., Raes, D. and Smith, M. (1998). *Crop evapotranspiration: Guidelines for computing crop water requirements.* FAO Irrigation and Drainage Paper 56.
+2. Singh, D. et al. (2020). *PlantDoc: A Dataset for Visual Plant Disease Detection.* CoDS-COMAD 2020. https://github.com/pratikkayal/PlantDoc-Dataset
+3. Howard, A. et al. (2019). *Searching for MobileNetV3.* ICCV 2019.
+4. Agmarknet, Directorate of Marketing & Inspection. https://agmarknet.gov.in, via the Open Government Data Platform: https://data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi
+5. Open-Meteo weather API. https://open-meteo.com
+6. Shapiro, M., Preguiça, N., Baquero, C. and Zawirski, M. (2011). *Conflict-free Replicated Data Types.* SSS 2011.
+7. Kulkarni, S. et al. (2014). *Logical Physical Clocks.* OPODIS 2014.
+8. Geifman, Y. and El-Yaniv, R. (2017). *Selective Classification for Deep Neural Networks.* NeurIPS 2017.
+9. ONNX Runtime Web. https://onnxruntime.ai
+10. Vikaspedia (Government of India) package of practices: wheat, chick pea, soybean (links in `crop_calendar.json`).
+
+## License
+
+MIT

@@ -1,6 +1,7 @@
 // Local server on plain Node (no wrangler needed): node:sqlite file + the same app.
 // npm run dev  ->  http://localhost:8787  (reads .dev.vars if present)
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { createApp } from "./app.ts";
 import { sqliteD1 } from "./lib/sqlite-d1.ts";
 import { existsSync } from "node:fs";
@@ -21,5 +22,8 @@ if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) {
   process.exit(1);
 }
 const app = createApp();
+// For local checks, also serve the built web app (npm run build in web/) from the same origin.
+const dist = new URL("../../web/dist/", import.meta.url).pathname;
+if (existsSync(dist)) app.use("/*", serveStatic({ root: dist }));
 serve({ fetch: req => app.fetch(req, env), port: 8787 }, i =>
   console.log(`kisan-server on http://localhost:${i.port} (mandi key ${env.DATA_GOV_IN_KEY ? "set" : "not set"})`));

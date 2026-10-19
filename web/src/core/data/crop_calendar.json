@@ -1,0 +1,39 @@
+{
+  "_note": "Only windows read on the linked page are listed. Exact dates vary with rain, variety and district; confirm with the local KVK.",
+  "entries": [
+    {
+      "crop": "wheat", "en": "Wheat", "hi": "गेहूं", "season": "rabi",
+      "region": { "en": "Central Zone: MP, Chhattisgarh, Gujarat, Kota and Udaipur (Rajasthan), Jhansi (UP)", "hi": "मध्य क्षेत्र: म.प्र., छत्तीसगढ़, गुजरात, कोटा व उदयपुर (राज.), झांसी (उ.प्र.)" },
+      "states": ["Madhya Pradesh", "Chhattisgarh", "Gujarat"],
+      "windows": [
+        { "kind": "sow", "label": { "en": "Irrigated, timely sown: middle of November", "hi": "सिंचित, समय पर बुवाई: नवंबर के मध्य" } },
+        { "kind": "sow", "label": { "en": "Late sown: first fortnight of December", "hi": "पछेती बुवाई: दिसंबर का पहला पखवाड़ा" } }
+      ],
+      "source": "https://en.vikaspedia.in/viewcontent/agriculture/crop-production/package-of-practices/cereals-and-millets/wheat?lgn=en",
+      "source_name": "Vikaspedia (Govt. of India), Wheat package of practices",
+      "last_verified": "2026-10-20"
+    },
+    {
+      "crop": "chickpea", "en": "Gram (chana)", "hi": "चना", "season": "rabi",
+      "region": { "en": "Central and South India", "hi": "मध्य और दक्षिण भारत" },
+      "states": ["Madhya Pradesh", "Chhattisgarh", "Maharashtra", "Gujarat"],
+      "windows": [
+        { "kind": "sow", "label": { "en": "First fortnight of October to first fortnight of November", "hi": "अक्टूबर के पहले पखवाड़े से नवंबर के पहले पखवाड़े तक" } }
+      ],
+      "source": "https://en.vikaspedia.in/viewcontent/agriculture/crop-production/package-of-practices/pulses/chick-pea?lgn=en",
+      "source_name": "Vikaspedia (Govt. of India), Chick pea package of practices",
+      "last_verified": "2026-10-20"
+    },
+    {
+      "crop": "soybean", "en": "Soybean", "hi": "सोयाबीन", "season": "kharif",
+      "region": { "en": "Central zone (as named on the source page)", "hi": "मध्य क्षेत्र (स्रोत पृष्ठ के अनुसार)" },
+      "states": [],
+      "windows": [
+        { "kind": "sow", "label": { "en": "20 June to 5 July", "hi": "20 जून से 5 जुलाई" } }
+      ],
+      "source": "https://en.vikaspedia.in/viewcontent/agriculture/crop-production/package-of-practices/oilseeds/a-comprehensive-guide-to-soybean-cultivation?lgn=en",
+      "source_name": "Vikaspedia (Govt. of India), Soybean cultivation guide",
+      "last_verified": "2026-10-20"
+    }
+  ]
+}

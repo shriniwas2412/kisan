@@ -1,0 +1,221 @@
+import { useEffect, useState } from "preact/hooks";
+
+export type Lang = "hi" | "en";
+
+const S = {
+  appName: { hi: "किसान", en: "Kisan" },
+  chooseView: { hi: "आप कौन हैं?", en: "Who is using the app?" },
+  iAmFarmer: { hi: "मैं किसान हूं", en: "I am a farmer" },
+  iAmWorker: { hi: "फील्ड कार्यकर्ता", en: "Field worker" },
+  switchView: { hi: "बदलें", en: "Switch" },
+  back: { hi: "वापस", en: "Back" },
+  langToggle: { hi: "English", en: "हिंदी" },
+
+  // farmer home
+  todayRate: { hi: "आज का भाव", en: "Today's rate" },
+  weather: { hi: "मौसम", en: "Weather" },
+  irrigation: { hi: "सिंचाई", en: "Irrigation" },
+  leaf: { hi: "पत्ती जांच", en: "Leaf check" },
+  schemes: { hi: "योजनाएं", en: "Schemes" },
+  calendar: { hi: "बुवाई समय", en: "Sowing time" },
+  myPlace: { hi: "मेरी जगह", en: "My place" },
+  setup: { hi: "जगह और फसल चुनें", en: "Choose place and crops" },
+  place: { hi: "जगह", en: "Place" },
+  save: { hi: "सेव करें", en: "Save" },
+  cancel: { hi: "रद्द करें", en: "Cancel" },
+  loading: { hi: "लोड हो रहा है…", en: "Loading…" },
+
+  // mandi
+  mandiNone: { hi: "आज का भाव उपलब्ध नहीं", en: "Today's rate is not available" },
+  mandiNoneWhy_no_api_key: { hi: "सर्वर पर मंडी API चालू नहीं है।", en: "The mandi API is not set up on the server." },
+  mandiNoneWhy_upstream_error: { hi: "Agmarknet से अभी जवाब नहीं मिला।", en: "Agmarknet did not answer just now." },
+  mandiNoneWhy_no_records: { hi: "इस जगह के लिए आज कोई भाव दर्ज नहीं है।", en: "No prices were reported for this place." },
+  mandiNoneWhy_offline: { hi: "इंटरनेट नहीं है और फ़ोन में पुराना भाव सेव नहीं है।", en: "No internet, and no saved rates on this phone." },
+  mandiToday: { hi: "आज का", en: "Today" },
+  mandiOlder: { hi: "आखिरी रिपोर्ट", en: "Latest report" },
+  mandiStale: { hi: "पुराना भाव, तारीख देखें", en: "Old rate, check the date" },
+  mandiOffline: { hi: "इंटरनेट नहीं, फ़ोन में सेव भाव", en: "Offline, saved on this phone" },
+  asOf: { hi: "तारीख", en: "As of" },
+  perQuintal: { hi: "₹ प्रति क्विंटल", en: "Rs. per quintal" },
+  modal: { hi: "आम भाव", en: "Modal" },
+  minMax: { hi: "कम–ज़्यादा", en: "Min–max" },
+  market: { hi: "मंडी", en: "Market" },
+  agmarknetBadge: { hi: "Agmarknet (सरकारी)", en: "Agmarknet (govt.)" },
+  manualBadge: { hi: "कार्यकर्ता ने देखा", en: "Seen by field worker" },
+  manualTitle: { hi: "कार्यकर्ता द्वारा दर्ज भाव", en: "Prices noted by field workers" },
+  manualNote: { hi: "ये सरकारी आंकड़े नहीं हैं। मंडी में देखे गए भाव।", en: "Not official data. Prices a field worker saw at the mandi." },
+  addManual: { hi: "मंडी में देखा भाव जोड़ें", en: "Add a price seen at the mandi" },
+  commodity: { hi: "फसल (मंडी नाम)", en: "Commodity (as Agmarknet writes it)" },
+  allCommodities: { hi: "सभी फसलें", en: "All commodities" },
+  showingRows: { hi: "पंक्तियां दिख रही हैं", en: "rows shown" },
+  ofTotal: { hi: "कुल", en: "of" },
+  source: { hi: "स्रोत", en: "Source" },
+  observedOn: { hi: "देखने की तारीख", en: "Date seen" },
+
+  // weather / irrigation
+  weatherNone: { hi: "मौसम की जानकारी नहीं मिली", en: "Weather is not available" },
+  rainMm: { hi: "बारिश (मिमी)", en: "Rain (mm)" },
+  tmax: { hi: "अधिकतम तापमान", en: "Max temp" },
+  et0: { hi: "ET₀ (मिमी/दिन)", en: "ET₀ (mm/day)" },
+  savedAt: { hi: "सेव किया", en: "Saved" },
+  crop: { hi: "फसल", en: "Crop" },
+  soil: { hi: "मिट्टी", en: "Soil" },
+  stage: { hi: "फसल की अवस्था", en: "Crop stage" },
+  stage_initial: { hi: "शुरुआती", en: "Early" },
+  stage_mid: { hi: "बीच की (फूल/दाना)", en: "Mid (flowering)" },
+  stage_late: { hi: "पकने के पास", en: "Late (ripening)" },
+  lastWatered: { hi: "आखिरी सिंचाई कब की", en: "Last watered on" },
+  area: { hi: "खेत (एकड़)", en: "Field (acres)" },
+  getAdvice: { hi: "सलाह देखें", en: "Get advice" },
+  irr_irrigate_now: { hi: "आज सिंचाई करें", en: "Irrigate today" },
+  irr_irrigate_tomorrow: { hi: "कल सिंचाई करें", en: "Irrigate tomorrow" },
+  irr_wait_rain: { hi: "रुकें, अगले 2 दिन में बारिश की संभावना", en: "Wait: rain expected in the next 2 days" },
+  irr_no_need: { hi: "अभी सिंचाई की ज़रूरत नहीं", en: "No need to irrigate yet" },
+  irr_paddy: { hi: "धान: खेत में पानी भरा रखें", en: "Paddy: keep standing water in the field" },
+  daysUntil: { hi: "दिन बाद अगली सिंचाई (अनुमान)", en: "days until next watering (estimate)" },
+  litres: { hi: "लीटर पानी (अनुमान)", en: "litres of water (estimate)" },
+  irrHow: { hi: "FAO-56 जल संतुलन: फसल गुणांक × ET₀ − उपयोगी बारिश। पहले हाथ से मिट्टी की नमी देखें।", en: "FAO-56 water balance: crop coefficient × ET₀ − useful rain. Check soil moisture by hand first." },
+
+  // leaf
+  leafPickCrop: { hi: "पहले फसल चुनें", en: "First choose the crop" },
+  leafNotSupported: { hi: "यह फसल अभी जांच में शामिल नहीं है", en: "This crop is not supported yet" },
+  leafNotSupportedWhy: { hi: "मॉडल में इस फसल के रोग नहीं हैं, इसलिए जांच नहीं चलेगी। पत्ती KVK या कृषि अधिकारी को दिखाएं।", en: "The model has no disease classes for this crop, so it will not run. Show the leaf to the KVK or agri officer." },
+  leafTakePhoto: { hi: "पत्ती की फ़ोटो लें", en: "Take a leaf photo" },
+  leafRunning: { hi: "जांच हो रही है…", en: "Checking…" },
+  leafPossible: { hi: "संभावित (निदान नहीं)", en: "Possible (not a diagnosis)" },
+  leafNotSure: { hi: "मॉडल पक्का नहीं है", en: "The model is not sure" },
+  leafNotSureWhy: { hi: "भरोसा 60% से कम है। नीचे सिर्फ़ संभावनाएं हैं।", en: "Confidence is below 60%. These are only possibilities." },
+  leafLikely: { hi: "सबसे संभावित", en: "Most likely" },
+  leafOtherPlant: { hi: "मॉडल को यह किसी दूसरे पौधे की पत्ती लगी। साफ़ फ़ोटो फिर से लें।", en: "The model thinks this is a different plant. Retake a clear photo." },
+  kvkNote: { hi: "पत्ती KVK या कृषि अधिकारी को दिखाएं। दवा और मात्रा वहीं से पूछें।", en: "Show the leaf to your KVK or agri officer. Ask them for any spray and dose." },
+  leafLimitsTitle: { hi: "यह जांच कितनी सही है", en: "How good this check is" },
+  leafRuntimeError: { hi: "मॉडल लोड नहीं हुआ। इंटरनेट से एक बार खोलें, फिर यह बिना इंटरनेट चलेगा।", en: "The model did not load. Open it once with internet; after that it works offline." },
+  retake: { hi: "दूसरी फ़ोटो", en: "Another photo" },
+  confidence: { hi: "भरोसा", en: "confidence" },
+
+  // schemes, calendar
+  officialSite: { hi: "आधिकारिक साइट", en: "Official site" },
+  verifiedOn: { hi: "जांचा गया", en: "Checked on" },
+  schemesNote: { hi: "पात्रता और राशि आधिकारिक साइट या कृषि कार्यालय से जानें।", en: "Check eligibility and amounts on the official site or at the agriculture office." },
+  calendarNone: { hi: "इस फसल का स्रोत सहित बुवाई समय अभी नहीं जोड़ा गया", en: "No sourced sowing window for this crop yet" },
+  calendarNote: { hi: "बारिश, किस्म और ज़िले के हिसाब से समय बदलता है। KVK से पुष्टि करें।", en: "Timing varies with rain, variety and district. Confirm with your KVK." },
+  region: { hi: "क्षेत्र", en: "Region" },
+
+  // field worker
+  signIn: { hi: "साइन इन", en: "Sign in" },
+  signOut: { hi: "साइन आउट", en: "Sign out" },
+  email: { hi: "ईमेल", en: "Email" },
+  password: { hi: "पासवर्ड", en: "Password" },
+  signInWhy: { hi: "डेटा इसी फ़ोन पर रहता है। सिंक के लिए साइन इन करें।", en: "Data stays on this phone. Sign in to sync it." },
+  farmers: { hi: "किसान", en: "Farmers" },
+  onboard: { hi: "नया किसान", en: "New farmer" },
+  import: { hi: "शीट से जोड़ें", en: "Paste from sheet" },
+  mandi: { hi: "मंडी", en: "Mandi" },
+  syncTab: { hi: "सिंक", en: "Sync" },
+  noFarmers: { hi: "अभी कोई किसान नहीं जोड़ा गया", en: "No farmers added yet" },
+  noFarmersHint: { hi: "सहमति लेकर पहला किसान जोड़ें।", en: "Add the first farmer after taking consent." },
+  search: { hi: "नाम या गांव खोजें", en: "Search name or village" },
+  visits: { hi: "मुलाकातें", en: "Visits" },
+  noVisits: { hi: "अभी कोई मुलाकात दर्ज नहीं", en: "No visits recorded yet" },
+  addVisit: { hi: "मुलाकात जोड़ें", en: "Add visit" },
+  visitedOn: { hi: "तारीख", en: "Date" },
+  purpose: { hi: "उद्देश्य", en: "Purpose" },
+  observations: { hi: "क्या देखा", en: "Observations" },
+  adviceGiven: { hi: "क्या सलाह दी", en: "Advice given" },
+  followUpOn: { hi: "फिर कब मिलना है", en: "Follow up on" },
+
+  consentTitle: { hi: "चरण 1: सहमति (ज़रूरी)", en: "Step 1: Consent (required)" },
+  consentRead: { hi: "किसान को बताएं: उनका नाम, गांव, फसल और फ़ोन इस ऐप में रखा जाएगा ताकि कार्यकर्ता सलाह और फ़ॉलो-अप कर सकें। वे कभी भी हटवा सकते हैं।", en: "Tell the farmer: their name, village, crops and phone will be kept in this app so field workers can advise and follow up. They can ask for it to be deleted at any time." },
+  consentGivenBy: { hi: "सहमति किसने दी", en: "Consent given by" },
+  given_self: { hi: "किसान स्वयं", en: "Farmer themself" },
+  given_guardian: { hi: "परिवार / अभिभावक", en: "Family / guardian" },
+  consentMethod: { hi: "तरीका", en: "Method" },
+  method_paper_signed: { hi: "कागज़ पर हस्ताक्षर", en: "Signed on paper" },
+  method_verbal_recorded: { hi: "मौखिक, रिकॉर्ड किया", en: "Verbal, recorded" },
+  method_digital: { hi: "डिजिटल", en: "Digital" },
+  scopeStore: { hi: "जानकारी ऐप में रखने की सहमति", en: "Agrees to their details being stored" },
+  scopeSync: { hi: "टीम के सर्वर पर सिंक करने की सहमति", en: "Agrees to syncing to the team server" },
+  scopeResearch: { hi: "गिनती/आंकड़ों में (बिना नाम) शामिल करने की सहमति", en: "Agrees to be counted in totals (no names)" },
+  guardianName: { hi: "अभिभावक का नाम", en: "Guardian name" },
+  guardianRelation: { hi: "रिश्ता", en: "Relation" },
+  consentDate: { hi: "सहमति की तारीख", en: "Date of consent" },
+  consentNeeded: { hi: "बिना सहमति किसान सेव नहीं होगा।", en: "A farmer cannot be saved without consent." },
+  next: { hi: "आगे", en: "Next" },
+  detailsTitle: { hi: "चरण 2: किसान की जानकारी", en: "Step 2: Farmer details" },
+  name: { hi: "नाम", en: "Name" },
+  phone: { hi: "फ़ोन", en: "Phone" },
+  village: { hi: "गांव", en: "Village" },
+  block: { hi: "ब्लॉक", en: "Block" },
+  district: { hi: "ज़िला", en: "District" },
+  state: { hi: "राज्य", en: "State" },
+  landAcres: { hi: "ज़मीन (एकड़)", en: "Land (acres)" },
+  irrigationSource: { hi: "सिंचाई का साधन (जैसा बताया)", en: "Irrigation source (as told)" },
+  crops: { hi: "फसलें", en: "Crops" },
+  season: { hi: "मौसम", en: "Season" },
+  addCrop: { hi: "फसल जोड़ें", en: "Add crop" },
+  notes: { hi: "नोट", en: "Notes" },
+  optional: { hi: "वैकल्पिक", en: "optional" },
+  fixErrors: { hi: "लाल वाले खाने ठीक करें", en: "Fix the fields marked in red" },
+  saved: { hi: "सेव हो गया", en: "Saved" },
+  withdraw: { hi: "सहमति वापस और रिकॉर्ड हटाएं", en: "Withdraw consent and delete record" },
+  withdrawConfirm: { hi: "पक्का? यह किसान और उनकी मुलाकातें हटेंगी।", en: "Sure? This deletes the farmer and their visits." },
+  consentOnFile: { hi: "सहमति दर्ज", en: "Consent on file" },
+
+  importTitle: { hi: "स्प्रेडशीट से किसान जोड़ें", en: "Add farmers from a spreadsheet" },
+  importHelp: { hi: "कॉलम के नाम डेटाबेस जैसे हों (ऊपर देखें)। हर किसान की सहमति की पंक्ति भी चिपकाएं।", en: "Column names must match the database (see above). Paste a consent row for every farmer too." },
+  farmersSheet: { hi: "किसान पंक्तियां", en: "Farmer rows" },
+  consentSheet: { hi: "सहमति पंक्तियां", en: "Consent rows" },
+  check: { hi: "जांचें", en: "Check" },
+  rowsOk: { hi: "पंक्तियां ठीक", en: "rows OK" },
+  rowsBad: { hi: "पंक्तियां में गलती", en: "rows with problems" },
+  importNow: { hi: "जोड़ें", en: "Import" },
+  line: { hi: "पंक्ति", en: "Line" },
+
+  syncNow: { hi: "अभी सिंक करें", en: "Sync now" },
+  pending: { hi: "सिंक बाकी", en: "Waiting to sync" },
+  lastSync: { hi: "आखिरी सिंक", en: "Last sync" },
+  never: { hi: "कभी नहीं", en: "Never" },
+  rejected: { hi: "सर्वर ने नहीं लिया", en: "Refused by server" },
+  syncFailed: { hi: "सिंक नहीं हुआ। इंटरनेट देखें।", en: "Sync failed. Check the internet." },
+  syncSignin: { hi: "सिंक के लिए फिर से साइन इन करें।", en: "Sign in again to sync." },
+  offline: { hi: "इंटरनेट नहीं", en: "Offline" },
+  online: { hi: "ऑनलाइन", en: "Online" },
+  leafChecks: { hi: "पत्ती जांच", en: "Leaf checks" },
+  saveToFarmer: { hi: "इस किसान के रिकॉर्ड में सेव करें", en: "Save to this farmer's record" },
+} as const;
+
+export type Key = keyof typeof S;
+
+let current: Lang = readLang();
+const subs = new Set<() => void>();
+export const getLang = () => current;
+
+function readLang(): Lang {
+  try { return (localStorage.getItem("kisan.lang") as Lang) || "hi"; } catch { return "hi"; }
+}
+
+export function setLang(l: Lang) {
+  current = l;
+  try { localStorage.setItem("kisan.lang", l); } catch { /* private mode */ }
+  document.documentElement.lang = l;
+  for (const fn of subs) fn();
+}
+
+/** Re-render the calling component when the language changes. */
+export function useLang(): Lang {
+  const [, force] = useState(0);
+  useEffect(() => { const fn = () => force(n => n + 1); subs.add(fn); return () => { subs.delete(fn); }; }, []);
+  return current;
+}
+
+export function t(k: Key): string {
+  return S[k][current];
+}
+
+export function tx(text: { en: string; hi: string } | undefined | null): string {
+  return text ? text[current] : "";
+}
+
+export function has(k: string): k is Key {
+  return k in S;
+}

@@ -1,0 +1,27 @@
+{
+ "n": 236,
+ "top1": 0.428,
+ "top3": 0.7712,
+ "selective": [
+  {
+   "threshold": 0.4,
+   "coverage": 0.7161,
+   "accuracy_when_confident": 0.5503
+  },
+  {
+   "threshold": 0.5,
+   "coverage": 0.4703,
+   "accuracy_when_confident": 0.6847
+  },
+  {
+   "threshold": 0.6,
+   "coverage": 0.2881,
+   "accuracy_when_confident": 0.7647
+  },
+  {
+   "threshold": 0.7,
+   "coverage": 0.1441,
+   "accuracy_when_confident": 0.7353
+  }
+ ]
+}

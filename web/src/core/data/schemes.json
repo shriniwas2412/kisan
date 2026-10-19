@@ -1,0 +1,22 @@
+{
+  "_note": "Short descriptions only, from the official page. Eligibility and amounts: read the official page or ask the agriculture office.",
+  "schemes": [
+    { "id": "pm-kisan", "name": { "en": "PM-KISAN Samman Nidhi", "hi": "पीएम-किसान सम्मान निधि" },
+      "what": { "en": "Income support paid in instalments to registered farmer families. eKYC is mandatory for registered farmers (official site).", "hi": "पंजीकृत किसान परिवारों को किस्तों में आय सहायता। पंजीकृत किसानों के लिए eKYC अनिवार्य है (आधिकारिक साइट)।" },
+      "url": "https://pmkisan.gov.in/", "last_verified": "2026-10-20" },
+    { "id": "pmfby", "name": { "en": "PM Fasal Bima Yojana (crop insurance)", "hi": "प्रधानमंत्री फसल बीमा योजना" },
+      "what": { "en": "Crop insurance. Farmers can apply, check premium and status online. Report crop loss or grievances on helpline 14447.", "hi": "फसल बीमा। आवेदन, प्रीमियम और स्थिति ऑनलाइन देखें। फसल नुकसान या शिकायत: हेल्पलाइन 14447।" },
+      "helpline": "14447",
+      "url": "https://pmfby.gov.in/", "last_verified": "2026-10-20" },
+    { "id": "shc", "name": { "en": "Soil Health Card", "hi": "मृदा स्वास्थ्य कार्ड" },
+      "what": { "en": "Soil testing and a soil health card for your field. The portal finds the nearest soil testing lab.", "hi": "खेत की मिट्टी जांच और मृदा स्वास्थ्य कार्ड। पोर्टल पर नज़दीकी मिट्टी जांच प्रयोगशाला खोजें।" },
+      "url": "https://soilhealth.dac.gov.in/", "last_verified": "2026-10-20" },
+    { "id": "kcc", "name": { "en": "Kisan Credit Card (KCC)", "hi": "किसान क्रेडिट कार्ड" },
+      "what": { "en": "Bank credit for cultivation and other farm needs through one card. Apply at a bank.", "hi": "खेती और अन्य कृषि ज़रूरतों के लिए एक कार्ड से बैंक ऋण। बैंक में आवेदन करें।" },
+      "url": "https://www.myscheme.gov.in/schemes/kcc", "last_verified": "2026-10-20" },
+    { "id": "pm-kusum", "name": { "en": "PM-KUSUM (solar pumps)", "hi": "पीएम-कुसुम (सोलर पंप)" },
+      "what": { "en": "Central subsidy for standalone solar pumps and for solarising grid-connected farm pumps, run by state departments. Beware of fake websites; toll-free 1800-180-3333.", "hi": "सोलर पंप और ग्रिड से जुड़े पंपों के सौरीकरण पर केंद्रीय सब्सिडी, राज्य विभाग द्वारा। नकली वेबसाइटों से सावधान; टोल फ्री 1800-180-3333।" },
+      "helpline": "1800-180-3333",
+      "url": "https://pmkusum.mnre.gov.in/", "last_verified": "2026-10-20" }
+  ]
+}
