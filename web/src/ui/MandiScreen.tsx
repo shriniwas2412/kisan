@@ -1,9 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
 import { Badge, Btn, Field, Notice, Screen, Select, tk } from "./kit.tsx";
-import { t, tx } from "./i18n.ts";
+import { getLang, t, tx } from "./i18n.ts";
 import { PLACES, placeById } from "../core/places.ts";
-import { commoditiesIn, freshness, manualFor, rowsFor, rupees, showDate, type ManualPrice, type MandiAnswer } from "../core/mandi.ts";
-import { getMandi, type Fetched } from "../data/api.ts";
+import { commoditiesIn, freshness, manualFor, rowsFor, rupees, showDate, type ManualPrice } from "../core/mandi.ts";
+import { getMandi, type MandiFetched } from "../data/api.ts";
+import { snapshotLabel } from "../core/demo.ts";
 import { all, save, onChange } from "../data/db.ts";
 import { checkRow } from "../../../shared/schema.ts";
 
@@ -14,7 +15,7 @@ export function MandiScreen({ worker, placeId, picked, onPick, back }: {
 }) {
   const [pid, setPid] = useState(placeId ?? PLACES[0].id);
   const place = placeById(pid)!;
-  const [res, setRes] = useState<Fetched<MandiAnswer> | null | undefined>(undefined);
+  const [res, setRes] = useState<MandiFetched | null | undefined>(undefined);
   const [chosen, setChosen] = useState<string>(picked?.[0] ?? "");
   const [manual, setManual] = useState<ManualPrice[]>([]);
   const [adding, setAdding] = useState(false);
@@ -34,7 +35,7 @@ export function MandiScreen({ worker, placeId, picked, onPick, back }: {
   const reason = res === null ? "offline" : answer && !answer.available ? answer.reason : "";
 
   return (
-    <Screen title={t("todayRate")} back={back}>
+    <Screen title={fresh === "today" && !res?.snapshot ? t("todayRate") : t("mandiRate")} back={back}>
       {worker && (
         <Select label={t("place")} value={pid} onChange={setPid} options={PLACES.map(p => ({ value: p.id, label: tx(p) }))} />
       )}
@@ -55,13 +56,20 @@ export function MandiScreen({ worker, placeId, picked, onPick, back }: {
             options={[{ value: "", label: t("allCommodities") }, ...commoditiesIn(rows).map(c => ({ value: c, label: c }))]} />
           <div class="row-between">
             <Badge kind="gov">{t("agmarknetBadge")}</Badge>
+            {res?.snapshot ? <span class="fresh stale">{snapshotLabel(answer!.available ? answer!.as_of ?? "" : "", getLang())}</span> :
             <span class={`fresh ${fresh}`}>
               {fresh === "today" && t("mandiToday")}
               {fresh === "older" && t("mandiOlder")}
               {fresh === "stale" && t("mandiStale")}
               {" · "}{t("asOf")} {showDate(answer!.available ? answer!.as_of : null)}
-            </span>
+            </span>}
           </div>
+          {res?.snapshot && (
+            <Notice kind="warn" title={t("snapshotTitle")}>
+              <p>{t("snapshotWhy")} {res.snapshot.scope === "state" && t("snapshotStateWide")}</p>
+              <p><a href={res.snapshot.dataset_url} target="_blank" rel="noopener">data.gov.in: Agmarknet mandi prices</a></p>
+            </Notice>
+          )}
           {res?.offline && <Notice kind="warn">{t("mandiOffline")} · {t("savedAt")} {new Date(res.savedAt).toLocaleString("en-IN")}</Notice>}
           <ul class="price-list">
             {list.map(r => (

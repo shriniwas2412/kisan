@@ -1,3 +1,4 @@
+import { Icon } from "./icons.tsx";
 import { Notice, Screen } from "./kit.tsx";
 import { t, tx } from "./i18n.ts";
 import { SCHEMES, calendarFor } from "../core/info.ts";
@@ -11,8 +12,8 @@ export function SchemesScreen({ back }: { back: string }) {
         <article class="card" key={s.id}>
           <h2>{tx(s.name)}</h2>
           <p>{tx(s.what)}</p>
-          {s.helpline && <p><a class="btn ghost" href={`tel:${s.helpline.replace(/-/g, "")}`}>📞 {s.helpline}</a></p>}
-          <p><a class="btn ghost" href={s.url} target="_blank" rel="noopener">{t("officialSite")} ↗</a></p>
+          {s.helpline && <p><a class="btn ghost" href={`tel:${s.helpline.replace(/-/g, "")}`}><Icon name="phone" size={22} />{s.helpline}</a></p>}
+          <p><a class="btn ghost" href={s.url} target="_blank" rel="noopener">{t("officialSite")}</a></p>
           <p class="small">{t("verifiedOn")}: {showDate(s.last_verified)}</p>
         </article>
       ))}

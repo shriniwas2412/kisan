@@ -2,6 +2,10 @@
 // no answer and nothing cached, the caller gets null and the UI says so.
 import { cacheGet, cachePut, meta, setMeta } from "./db.ts";
 import type { MandiAnswer } from "../core/mandi.ts";
+import { snapshotAnswer, SNAPSHOT_FILE, type MandiSnapshot } from "../core/demo.ts";
+
+/** Hosted demo build: no server, so mandi prices come from a real, dated snapshot. */
+export const DEMO_BUILD = import.meta.env.VITE_DEMO === "1";
 import { openMeteoUrl, parseOpenMeteo, type Day } from "../core/irrigation.ts";
 
 export type User = { id: string; name: string; role: string };
@@ -30,7 +34,18 @@ export const currentUser = () => meta<User | null>("user");
 export type Fetched<T> = { value: T; savedAt: number; offline: boolean };
 
 /** Mandi prices for a place. Falls back to the copy last saved on this phone. */
-export async function getMandi(state: string, district?: string): Promise<Fetched<MandiAnswer> | null> {
+export type MandiFetched = Fetched<MandiAnswer> & { snapshot?: { dataset_url: string; scope: "district" | "state" } };
+
+export async function getMandi(state: string, district?: string): Promise<MandiFetched | null> {
+  if (DEMO_BUILD) {
+    try {
+      const s = (await (await fetch(`${import.meta.env.BASE_URL}${SNAPSHOT_FILE}`)).json()) as MandiSnapshot;
+      const { answer, scope } = snapshotAnswer(s, state, district);
+      return { value: answer, savedAt: Date.parse(s.fetched_at), offline: false, snapshot: { dataset_url: s.dataset_url, scope } };
+    } catch {
+      return null;
+    }
+  }
   const key = `mandi:${state}|${district ?? ""}`;
   try {
     const q = new URLSearchParams({ state, ...(district ? { district } : {}) });

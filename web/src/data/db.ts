@@ -4,6 +4,7 @@
 import { openDB, type IDBPDatabase } from "idb";
 import { createClock, mergeRecord, maxStamp, stamp, ulid, type Clock, type SyncRecord } from "../../../shared/sync.ts";
 import type { TableName } from "../../../shared/schema.ts";
+import { buildDemoData, clearDemo as clearDemoRows, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
 
 const TABLES: TableName[] = ["farmer", "consent", "visit", "leaf_check", "mandi_price_manual"];
 type Store = TableName | "meta" | "outbox" | "cache";
@@ -102,7 +103,8 @@ export async function sync(fetchImpl: typeof fetch = fetch): Promise<SyncReport>
   let more = true;
   let first = true;
   while (more) {
-    const keys = first ? ((await d.getAllKeys("outbox")) as string[]) : [];
+    // Demo rows never leave the phone.
+    const keys = first ? ((await d.getAllKeys("outbox")) as string[]).filter(k => !isDemoId(k.split(":")[1] ?? "")) : [];
     const queued = new Map<string, string>();
     for (const k of keys) queued.set(k, await d.get("outbox", k));
     first = false;
@@ -137,4 +139,37 @@ export async function sync(fetchImpl: typeof fetch = fetch): Promise<SyncReport>
   await setMeta("lastSync", report);
   notify();
   return report;
+}
+
+// --- demo data ---
+function demoStore(d: IDBPDatabase): DemoStore {
+  return {
+    put: async (t, r) => { await d.put(t, r); },
+    ids: async t => (await d.getAllKeys(t)) as string[],
+    del: async (t, id) => { await d.delete(t, id); },
+    outboxKeys: async () => (await d.getAllKeys("outbox")) as string[],
+    delOutbox: async k => { await d.delete("outbox", k); },
+  };
+}
+
+export const isDemoLoaded = async () => !!(await meta<string>("demoLoadedAt"));
+
+export async function loadDemo(todayIso: string) {
+  await loadDemoRows(demoStore(await db()), buildDemoData(todayIso));
+  await setMeta("demoLoadedAt", new Date().toISOString());
+  notify();
+}
+
+export async function clearDemo() {
+  const d = await db();
+  await clearDemoRows(demoStore(d));
+  // Rows the user added to a demo farmer (a visit, a leaf check) go too.
+  for (const t of ["visit", "leaf_check"] as const) {
+    for (const r of (await d.getAll(t)) as SyncRecord[]) {
+      if (isDemoId(String(r.farmer_id ?? ""))) { await d.delete(t, r.id); await d.delete("outbox", `${t}:${r.id}`); }
+    }
+  }
+  await setMeta("demoLoadedAt", null);
+  await setMeta("demoCleared", true);
+  notify();
 }

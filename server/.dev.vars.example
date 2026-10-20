@@ -1,5 +1,10 @@
-# Copy to .dev.vars (git-ignored) for local runs.
-JWT_SECRET=
+# Copy to .dev.vars (git-ignored) for local runs. Placeholders only, never real keys here.
+JWT_SECRET=replace-with-32-or-more-random-characters
+# Optional: your own free key from data.gov.in. Leave empty to see the "not available" state.
 DATA_GOV_IN_KEY=
 ALLOWED_ORIGINS=http://localhost:5173
 MANDI_LIMIT=10
+# Demo accounts for `npm run seed:demo` (local only; change before showing anyone).
+DEMO_ADMIN_EMAIL=demo-admin@example.org
+DEMO_WORKER_EMAIL=demo-worker@example.org
+DEMO_PASSWORD=change-me-demo-only

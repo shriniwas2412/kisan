@@ -1,6 +1,8 @@
+import { Icon, type IconName } from "./icons.tsx";
 // Field worker view: works offline on this phone; sign in to sync with the team server.
 import { useEffect, useState } from "preact/hooks";
-import { Badge, Btn, Field, Notice, Screen, Select, tk } from "./kit.tsx";
+import { Badge, Btn, Field, Notice, Screen, Select, Tile, problemText, reasonText, tk } from "./kit.tsx";
+import { DEMO_BUILD } from "../data/api.ts";
 import { t } from "./i18n.ts";
 import { all, get, meta, onChange, pendingCount, remove, save, sync, type SyncReport } from "../data/db.ts";
 import { currentUser, signIn, signOut, type User } from "../data/api.ts";
@@ -30,11 +32,12 @@ function useTable<T>(table: "farmer" | "visit" | "consent" | "leaf_check") {
 }
 
 function Tabs({ active }: { active: string }) {
-  const tabs: [string, string][] = [["/fw", t("farmers")], ["/fw/new", t("onboard")], ["/fw/mandi", t("mandi")], ["/fw/more", "…"], ["/fw/sync", t("syncTab")]];
+  const tabs: [string, string, IconName][] = [["/fw", t("farmers"), "people"], ["/fw/new", t("onboard"), "plus"], ["/fw/mandi", t("mandi"), "rupee"],
+    ["/fw/more", t("moreTab"), "more"], ["/fw/sync", t("syncTab"), "sync"]];
   return (
     <nav class="tabs" aria-label="Field worker">
-      {tabs.map(([href, label]) => (
-        <a key={href} href={`#${href}`} class={active === href ? "on" : ""} aria-current={active === href ? "page" : undefined}>{label}</a>
+      {tabs.map(([href, label, icon]) => (
+        <a key={href} href={`#${href}`} class={active === href ? "on" : ""} aria-current={active === href ? "page" : undefined}><Icon name={icon} size={24} />{label}</a>
       ))}
     </nav>
   );
@@ -110,7 +113,7 @@ function Onboard() {
         <label class="check"><input type="checkbox" checked={c.scope_research_aggregate} onChange={e => setC({ ...c, scope_research_aggregate: (e.target as HTMLInputElement).checked })} /> {t("scopeResearch")}</label>
         <Field label={t("consentDate")}><input type="date" max={today()} value={c.recorded_at} onInput={e => setC({ ...c, recorded_at: (e.target as HTMLInputElement).value })} /></Field>
         {!ok && <p class="small">{t("consentNeeded")}</p>}
-        <Btn disabled={!ok} onClick={() => setStep(2)}>{t("next")} →</Btn>
+        <Btn disabled={!ok} onClick={() => setStep(2)}>{t("next")}</Btn>
       </Screen>
     );
   }
@@ -122,7 +125,7 @@ function Onboard() {
   );
   return (
     <Screen title={t("detailsTitle")}>
-      <p><Badge kind="ok">✓ {t("consentOnFile")}</Badge></p>
+      <p><Badge kind="ok">{t("consentOnFile")}</Badge></p>
       <form noValidate class="stack" onSubmit={finish}>
         {inp("name", t("name"), "text", false)}
         {inp("phone", t("phone"), "tel")}
@@ -147,7 +150,7 @@ function Onboard() {
         <Field label={t("notes")} hint={t("optional")}><textarea value={f.notes ?? ""} onInput={set("notes")} /></Field>
         {bad.size > 0 && <Notice kind="bad">{t("fixErrors")}</Notice>}
         <div class="row">
-          <Btn kind="ghost" onClick={() => setStep(1)}>← {t("back")}</Btn>
+          <Btn kind="ghost" onClick={() => setStep(1)}><Icon name="back" size={22} />{t("back")}</Btn>
           <button class="btn primary" type="submit">{t("save")}</button>
         </div>
       </form>
@@ -183,11 +186,11 @@ function FarmerDetail({ id }: { id: string }) {
     <Screen title={farmer.name} back="/fw">
       <section class="card">
         <p>{[farmer.village, farmer.block, farmer.district, farmer.state].filter(Boolean).join(", ")}</p>
-        {farmer.phone && <p><a class="btn ghost" href={`tel:${farmer.phone}`}>📞 {farmer.phone}</a></p>}
+        {farmer.phone && <p><a class="btn ghost" href={`tel:${farmer.phone}`}><Icon name="phone" size={22} />{farmer.phone}</a></p>}
         {farmer.land_acres != null && <p>{t("landAcres")}: {farmer.land_acres}</p>}
         {farmer.crops?.length ? <p>{t("crops")}: {farmer.crops.map(c => [c.crop, c.season, c.area_acres != null ? `${c.area_acres} ac` : ""].filter(Boolean).join(" ")).join("; ")}</p> : null}
         {farmer.notes && <p>{farmer.notes}</p>}
-        {consent ? <Badge kind="ok">✓ {t("consentOnFile")} · {showDate(String(consent.recorded_at))}</Badge> : <Badge kind="warn">{t("consentNeeded")}</Badge>}
+        {consent ? <Badge kind="ok">{t("consentOnFile")} · {showDate(String(consent.recorded_at))}</Badge> : <Badge kind="warn">{t("consentNeeded")}</Badge>}
       </section>
 
       <h2>{t("visits")}</h2>
@@ -206,7 +209,7 @@ function FarmerDetail({ id }: { id: string }) {
       </ol>
 
       <h2>{t("leafChecks")}</h2>
-      <a class="btn ghost" href={`#/fw/leaf/${id}`}>🍃 {t("leaf")}</a>
+      <a class="btn ghost" href={`#/fw/leaf/${id}`}><Icon name="leaf" size={22} />{t("leaf")}</a>
       <ul class="list">
         {(checks ?? []).filter(c => c.farmer_id === id).map(c => (
           <li key={c.id} class="list-item static">
@@ -270,13 +273,13 @@ function ImportScreen() {
       <Field label={t("farmersSheet")}><textarea rows={6} value={farmersText} onInput={e => setFarmersText((e.target as HTMLTextAreaElement).value)} /></Field>
       <Field label={t("consentSheet")}><textarea rows={4} value={consentText} onInput={e => setConsentText((e.target as HTMLTextAreaElement).value)} /></Field>
       <Btn onClick={check} disabled={!farmersText.trim()}>{t("check")}</Btn>
-      {done > 0 && <Notice kind="ok">✓ {done} {t("saved")}</Notice>}
+      {done > 0 && <Notice kind="ok">{done} {t("importedN")}</Notice>}
       {res && (
         <section class="card" aria-live="polite">
           <p><b>{res.farmers.length}</b> {t("rowsOk")} · <b>{res.rejected.length + res.consentErrors.length}</b> {t("rowsBad")}</p>
           <ul class="errors">
-            {res.consentErrors.map(r => <li key={`c${r.line}`}>{t("consentSheet")} {t("line")} {r.line}: {r.problems.map(p => `${p.field} (${p.code})`).join(", ")}</li>)}
-            {res.rejected.map(r => <li key={`f${r.line}`}>{t("line")} {r.line} {r.name}: {r.problems.map(p => `${p.field} (${p.code})`).join(", ")}</li>)}
+            {res.consentErrors.map(r => <li key={`c${r.line}`}>{t("consentSheet")} {t("line")} {r.line}: {r.problems.map(p => problemText(p)).join(", ")}</li>)}
+            {res.rejected.map(r => <li key={`f${r.line}`}>{t("line")} {r.line} {r.name}: {r.problems.map(p => problemText(p)).join(", ")}</li>)}
           </ul>
           {res.farmers.length > 0 && <Btn onClick={run}>{t("importNow")} ({res.farmers.length})</Btn>}
         </section>
@@ -313,17 +316,18 @@ function SyncScreen() {
   if (user === undefined) return <p class="screen">{t("loading")}</p>;
   return (
     <Screen title={t("syncTab")}>
+      {DEMO_BUILD && <Notice kind="info">{t("demoNoSync")}</Notice>}
       <p><Badge kind={online ? "ok" : "warn"}>{online ? t("online") : t("offline")}</Badge></p>
       <section class="card">
         <p>{t("pending")}: <b>{pending}</b></p>
         <p>{t("lastSync")}: {last ? new Date(last.at).toLocaleString("en-IN") : t("never")}</p>
         {last && last.rejected.length > 0 && (
           <Notice kind="warn" title={`${t("rejected")}: ${last.rejected.length}`}>
-            <ul>{last.rejected.map(r => <li key={`${r.table}:${r.id}`}>{r.table} {r.id}: {r.reason}</li>)}</ul>
+            <ul>{last.rejected.map(r => <li key={`${r.table}:${r.id}`}>{r.table} {r.id}: {reasonText(r.reason)}</li>)}</ul>
           </Notice>
         )}
       </section>
-      {user ? (
+      {DEMO_BUILD ? null : user ? (
         <>
           <p>{user.name} ({user.role})</p>
           <Btn onClick={doSync} disabled={state === "busy" || !online}>{state === "busy" ? t("loading") : t("syncNow")}</Btn>
@@ -349,13 +353,13 @@ function SyncScreen() {
 
 function More() {
   return (
-    <Screen title="…">
+    <Screen title={t("moreTab")}>
       <div class="tiles">
-        <a class="tile" href="#/fw/import"><span class="tile-icon" aria-hidden="true">📋</span><span class="tile-label">{t("import")}</span></a>
-        <a class="tile" href="#/fw/leaf"><span class="tile-icon" aria-hidden="true">🍃</span><span class="tile-label">{t("leaf")}</span></a>
-        <a class="tile" href="#/fw/irrigation"><span class="tile-icon" aria-hidden="true">💧</span><span class="tile-label">{t("irrigation")}</span></a>
-        <a class="tile" href="#/fw/schemes"><span class="tile-icon" aria-hidden="true">📄</span><span class="tile-label">{t("schemes")}</span></a>
-        <a class="tile" href="#/fw/calendar"><span class="tile-icon" aria-hidden="true">📅</span><span class="tile-label">{t("calendar")}</span></a>
+        <Tile href="/fw/import" icon="clipboard" label={t("import")} />
+        <Tile href="/fw/leaf" icon="leaf" label={t("leaf")} />
+        <Tile href="/fw/irrigation" icon="drop" label={t("irrigation")} />
+        <Tile href="/fw/schemes" icon="doc" label={t("schemes")} />
+        <Tile href="/fw/calendar" icon="calendar" label={t("calendar")} />
       </div>
     </Screen>
   );

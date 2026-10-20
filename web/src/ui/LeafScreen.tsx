@@ -1,3 +1,4 @@
+import { Icon } from "./icons.tsx";
 import { useState } from "preact/hooks";
 import { Badge, Btn, Notice, Screen } from "./kit.tsx";
 import { t, tx } from "./i18n.ts";
@@ -81,7 +82,7 @@ export function LeafScreen({ farmerId, back }: { farmerId?: string; back: string
       {supported && (
         <>
           <label class="btn primary file">
-            📷 {img ? t("retake") : t("leafTakePhoto")}
+            <Icon name="camera" size={24} />{img ? t("retake") : t("leafTakePhoto")}
             <input type="file" accept="image/*" capture="environment" onChange={onFile} class="visually-hidden" />
           </label>
           {img && <img class="leaf-photo" src={img} alt="" />}
@@ -104,7 +105,7 @@ export function LeafScreen({ farmerId, back }: { farmerId?: string; back: string
               {result.confident && adviceFor(result.best.label) && <p>{tx(adviceFor(result.best.label))}</p>}
               <Notice kind="info">{t("kvkNote")}</Notice>
               {farmerId && !savedId && <Btn kind="ghost" onClick={keep}>{t("saveToFarmer")}</Btn>}
-              {savedId && <p role="status">✓ {t("saved")}</p>}
+              {savedId && <p role="status" class="ok-text"><Icon name="check" size={20} /> {t("saved")}</p>}
             </section>
           )}
         </>

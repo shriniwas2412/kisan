@@ -1,0 +1,154 @@
+{
+ "source": "Agmarknet via data.gov.in",
+ "dataset_url": "https://data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi",
+ "resource_id": "9ef84268-d588-465a-a308-a864a43d0070",
+ "fetched_at": "2026-10-20T08:06:18.948Z",
+ "as_of": "2026-10-20",
+ "query": {
+  "calls": [
+   {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal"
+   },
+   {
+    "state": "Madhya Pradesh"
+   }
+  ]
+ },
+ "unit": "Rs./Quintal",
+ "note": "Real rows saved once for the offline demo. Not today's price; check the date.",
+ "records": [
+  {
+   "state": "Madhya Pradesh",
+   "district": "Bhopal",
+   "market": "Bhopal APMC",
+   "commodity": "Onion",
+   "variety": "Onion",
+   "grade": "FAQ",
+   "arrival_date": "2026-10-20",
+   "min_price": 800,
+   "max_price": 4500,
+   "modal_price": 4300
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Balaghat",
+   "market": "Balaghat APMC",
+   "commodity": "Paddy(Common)",
+   "variety": "Paddy",
+   "grade": "FAQ",
+   "arrival_date": "2026-10-20",
+   "min_price": 1850,
+   "max_price": 1850,
+   "modal_price": 1850
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Pomegranate",
+   "variety": "Pomogranate",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 5000,
+   "max_price": 18000,
+   "modal_price": 9000
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Papaya",
+   "variety": "Papaya",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 1500,
+   "max_price": 4000,
+   "modal_price": 2500
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Apple",
+   "variety": "Apple",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 3000,
+   "max_price": 14000,
+   "modal_price": 8000
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Carrot",
+   "variety": "Carrot",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 800,
+   "max_price": 1600,
+   "modal_price": 1200
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Brinjal",
+   "variety": "Brinjal",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 300,
+   "max_price": 1000,
+   "modal_price": 600
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Cabbage",
+   "variety": "Cabbage",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 200,
+   "max_price": 700,
+   "modal_price": 500
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Indore",
+   "market": "Indore(F&V) APMC",
+   "commodity": "Green Chilli",
+   "variety": "Green Chilly",
+   "grade": "Local",
+   "arrival_date": "2026-10-20",
+   "min_price": 3000,
+   "max_price": 7000,
+   "modal_price": 5000
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Badwani",
+   "market": "Sendhwa APMC",
+   "commodity": "Soyabean",
+   "variety": "Soyabeen",
+   "grade": "FAQ",
+   "arrival_date": "2026-10-20",
+   "min_price": 6200,
+   "max_price": 6900,
+   "modal_price": 6800
+  },
+  {
+   "state": "Madhya Pradesh",
+   "district": "Jabalpur",
+   "market": "Shahpura Bhitoni (F&V) APMC",
+   "commodity": "Maize",
+   "variety": "Local",
+   "grade": "FAQ",
+   "arrival_date": "2026-10-20",
+   "min_price": 2070,
+   "max_price": 2105,
+   "modal_price": 2105
+  }
+ ]
+}

@@ -8,7 +8,8 @@
     "dev:worker": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
-    "db:migrate:local": "wrangler d1 migrations apply kisan --local"
+    "db:migrate:local": "wrangler d1 migrations apply kisan --local",
+    "seed:demo": "node --env-file-if-exists=.dev.vars scripts/seed-demo.ts"
   },
   "engines": {
     "node": ">=23.6"

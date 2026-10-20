@@ -13,6 +13,7 @@ const S = {
 
   // farmer home
   todayRate: { hi: "आज का भाव", en: "Today's rate" },
+  mandiRate: { hi: "मंडी भाव", en: "Mandi rate" },
   weather: { hi: "मौसम", en: "Weather" },
   irrigation: { hi: "सिंचाई", en: "Irrigation" },
   leaf: { hi: "पत्ती जांच", en: "Leaf check" },
@@ -23,7 +24,7 @@ const S = {
   place: { hi: "जगह", en: "Place" },
   save: { hi: "सेव करें", en: "Save" },
   cancel: { hi: "रद्द करें", en: "Cancel" },
-  loading: { hi: "लोड हो रहा है…", en: "Loading…" },
+  loading: { hi: "खुल रहा है…", en: "Loading…" },
 
   // mandi
   mandiNone: { hi: "आज का भाव उपलब्ध नहीं", en: "Today's rate is not available" },
@@ -53,7 +54,7 @@ const S = {
   observedOn: { hi: "देखने की तारीख", en: "Date seen" },
 
   // weather / irrigation
-  weatherNone: { hi: "मौसम की जानकारी नहीं मिली", en: "Weather is not available" },
+  weatherNone: { hi: "मौसम की जानकारी नहीं मिली। इंटरनेट चालू करके फिर खोलें।", en: "Weather is not available. Turn on the internet and open this again." },
   rainMm: { hi: "बारिश (मिमी)", en: "Rain (mm)" },
   tmax: { hi: "अधिकतम तापमान", en: "Max temp" },
   et0: { hi: "ET₀ (मिमी/दिन)", en: "ET₀ (mm/day)" },
@@ -111,6 +112,7 @@ const S = {
   onboard: { hi: "नया किसान", en: "New farmer" },
   import: { hi: "शीट से जोड़ें", en: "Paste from sheet" },
   mandi: { hi: "मंडी", en: "Mandi" },
+  moreTab: { hi: "और", en: "More" },
   syncTab: { hi: "सिंक", en: "Sync" },
   noFarmers: { hi: "अभी कोई किसान नहीं जोड़ा गया", en: "No farmers added yet" },
   noFarmersHint: { hi: "सहमति लेकर पहला किसान जोड़ें।", en: "Add the first farmer after taking consent." },
@@ -158,7 +160,7 @@ const S = {
   fixErrors: { hi: "लाल वाले खाने ठीक करें", en: "Fix the fields marked in red" },
   saved: { hi: "सेव हो गया", en: "Saved" },
   withdraw: { hi: "सहमति वापस और रिकॉर्ड हटाएं", en: "Withdraw consent and delete record" },
-  withdrawConfirm: { hi: "पक्का? यह किसान और उनकी मुलाकातें हटेंगी।", en: "Sure? This deletes the farmer and their visits." },
+  withdrawConfirm: { hi: "इस किसान और उनकी सभी मुलाकातों को हटाएं? यह वापस नहीं होगा।", en: "Delete this farmer and all their visits? This cannot be undone." },
   consentOnFile: { hi: "सहमति दर्ज", en: "Consent on file" },
 
   importTitle: { hi: "स्प्रेडशीट से किसान जोड़ें", en: "Add farmers from a spreadsheet" },
@@ -182,6 +184,35 @@ const S = {
   online: { hi: "ऑनलाइन", en: "Online" },
   leafChecks: { hi: "पत्ती जांच", en: "Leaf checks" },
   saveToFarmer: { hi: "इस किसान के रिकॉर्ड में सेव करें", en: "Save to this farmer's record" },
+
+  // demo + first screen
+  skip: { hi: "मुख्य हिस्से पर जाएं", en: "Skip to content" },
+  tagline: { hi: "मंडी भाव, मौसम, सिंचाई सलाह और पत्ती जांच। बिना इंटरनेट भी चलता है।", en: "Mandi rates, weather, irrigation advice and a leaf check. Works without internet too." },
+  farmerSub: { hi: "बिना लॉगिन, बड़े बटन", en: "No login, big buttons" },
+  workerSub: { hi: "किसान जोड़ें, मुलाकात लिखें", en: "Add farmers, log visits" },
+  demoWhat: { hi: "पहली बार देख रहे हैं? नमूना डेटा के साथ ऐप आज़माएं। ये असली किसान नहीं हैं।", en: "First time here? Try the app with demo data. These are not real farmers." },
+  demoTry: { hi: "नमूना देखें", en: "Try demo" },
+  demoBanner: { hi: "नमूना डेटा", en: "Demo data" },
+  demoBannerWhy: { hi: "किसान और मुलाकातें काल्पनिक हैं। मंडी भाव एक पुराना असली स्नैपशॉट है।", en: "Farmers and visits are made up. Mandi rates are an old real snapshot." },
+  demoClear: { hi: "नमूना डेटा हटाएं", en: "Clear demo data" },
+  snapshotTitle: { hi: "यह आज का भाव नहीं है", en: "This is not today's price" },
+  snapshotWhy: { hi: "डेमो में सर्वर नहीं है, इसलिए Agmarknet से एक बार सेव किए असली भाव दिख रहे हैं। तारीख देखें।", en: "The demo has no server, so it shows real Agmarknet prices saved once. Check the date." },
+  snapshotStateWide: { hi: "इस ज़िले का भाव नहीं था, इसलिए राज्य की दूसरी मंडियां दिख रही हैं।", en: "There were no rows for this district, so other mandis in the state are shown." },
+  demoNoSync: { hi: "डेमो में सर्वर नहीं है, इसलिए सिंक बंद है। डेटा इसी फ़ोन पर रहता है।", en: "The demo has no server, so sync is off. Data stays on this phone." },
+  changePlace: { hi: "जगह बदलें", en: "Change place" },
+  importedN: { hi: "किसान जोड़े गए", en: "farmers added" },
+
+  // plain-language problems (instead of codes)
+  prob_required: { hi: "भरना ज़रूरी है", en: "is required" },
+  prob_format: { hi: "का रूप सही नहीं", en: "is not in the right format" },
+  prob_range: { hi: "सीमा से बाहर है", en: "is out of range" },
+  prob_enum: { hi: "मान्य विकल्प नहीं है", en: "is not an allowed value" },
+  prob_type: { hi: "संख्या होनी चाहिए", en: "must be a number" },
+  prob_missing: { hi: "नहीं मिली", en: "is missing" },
+  why_no_consent: { hi: "सहमति दर्ज नहीं है", en: "no consent on record" },
+  why_unknown_farmer: { hi: "यह किसान सर्वर पर नहीं है", en: "this farmer is not on the server" },
+  why_bad_stamps: { hi: "फ़ोन की तारीख/समय गलत है", en: "the phone's date or time is wrong" },
+  why_unknown_table: { hi: "अनजान डेटा", en: "unknown data" },
 } as const;
 
 export type Key = keyof typeof S;
@@ -209,7 +240,7 @@ export function useLang(): Lang {
 }
 
 export function t(k: Key): string {
-  return S[k][current];
+  return S[k]?.[current] ?? String(k); // unknown keys show as-is rather than crashing
 }
 
 export function tx(text: { en: string; hi: string } | undefined | null): string {

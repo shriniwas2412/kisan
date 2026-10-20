@@ -1,3 +1,4 @@
+import { Icon } from "./icons.tsx";
 import { useEffect, useState } from "preact/hooks";
 import { Btn, Field, Notice, Screen, Select, tk } from "./kit.tsx";
 import { t, tx } from "./i18n.ts";
@@ -39,8 +40,8 @@ export function WeatherScreen({ placeId, pickPlace, back }: { placeId?: string; 
             {days.map(d => (
               <li key={d.date} class="day">
                 <b>{showDate(d.date)}</b>
-                <span>🌧 {d.rain.toFixed(1)} mm</span>
-                {d.tmax != null && <span>🌡 {Math.round(d.tmax)}°C</span>}
+                <span class="with-icon"><Icon name="rain" size={20} />{d.rain.toFixed(1)} mm</span>
+                {d.tmax != null && <span class="with-icon"><Icon name="temp" size={20} />{Math.round(d.tmax)}°C</span>}
                 <span>ET₀ {d.et0.toFixed(1)}</span>
               </li>
             ))}

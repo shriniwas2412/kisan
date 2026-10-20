@@ -8,6 +8,7 @@ export default defineConfig({
     // Same origin in dev, so the session cookie works without CORS.
     proxy: { "/api": "http://localhost:8787" },
   },
-  base: "./", // works at a domain root or a GitHub Pages sub-path
+  // GitHub Pages serves from /<repo>/ (set by the Pages workflow); "./" works anywhere else.
+  base: process.env.VITE_BASE ?? "./",
   build: { target: "es2022" },
 });
