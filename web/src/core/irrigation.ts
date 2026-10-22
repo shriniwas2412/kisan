@@ -3,33 +3,42 @@
 // readily available water (RAW) the root zone holds for this soil.
 // All pure functions so they can be tested without a browser.
 
-// Crop coefficients (FAO-56 Table 12, rounded) and typical root depth in metres.
+// Crop values from FAO-56, by named row (data/fao56_rows.json holds the printed rows;
+// irrigation.test.ts checks every number below against them):
+//   kc     Table 12 Kc ini / mid / end. Where a range is printed, the higher value.
+//   rootM  Table 22 maximum root depth. Where a range is printed, the lower value
+//          (a shallower root zone holds less water, so advice errs towards watering).
+//   p      Table 22 depletion fraction for no stress (for ETc about 5 mm/day; not adjusted).
+// Wheat uses the "Spring Wheat" rows for both tables.
 export type Stage = "initial" | "mid" | "late";
-export type IrrCrop = { en: string; hi: string; kc: Record<Stage, number>; rootM: number; flooded?: boolean };
+export type IrrCrop = { en: string; hi: string; fao: string; kc: Record<Stage, number>; rootM: number; p: number; flooded?: boolean };
 export const CROPS: Record<string, IrrCrop> = {
-  wheat:     { en: "Wheat",     hi: "गेहूं",    kc: { initial: 0.7, mid: 1.15, late: 0.4 }, rootM: 1.0 },
-  soybean:   { en: "Soybean",   hi: "सोयाबीन", kc: { initial: 0.4, mid: 1.15, late: 0.5 }, rootM: 0.8 },
-  cotton:    { en: "Cotton",    hi: "कपास",    kc: { initial: 0.35, mid: 1.15, late: 0.7 }, rootM: 1.2 },
-  maize:     { en: "Maize",     hi: "मक्का",    kc: { initial: 0.3, mid: 1.2, late: 0.6 }, rootM: 1.0 },
-  chickpea:  { en: "Chickpea",  hi: "चना",     kc: { initial: 0.4, mid: 1.0, late: 0.35 }, rootM: 0.8 },
-  tomato:    { en: "Tomato",    hi: "टमाटर",   kc: { initial: 0.6, mid: 1.15, late: 0.8 }, rootM: 0.7 },
-  potato:    { en: "Potato",    hi: "आलू",     kc: { initial: 0.5, mid: 1.15, late: 0.75 }, rootM: 0.5 },
-  onion:     { en: "Onion",     hi: "प्याज",    kc: { initial: 0.7, mid: 1.05, late: 0.75 }, rootM: 0.4 },
-  sugarcane: { en: "Sugarcane", hi: "गन्ना",    kc: { initial: 0.4, mid: 1.25, late: 0.75 }, rootM: 1.2 },
-  rice:      { en: "Rice (paddy)", hi: "धान", kc: { initial: 1.05, mid: 1.2, late: 0.9 }, rootM: 0.3, flooded: true },
+  wheat:     { en: "Wheat",     hi: "गेहूं",    fao: "Spring Wheat", kc: { initial: 0.3, mid: 1.15, late: 0.4 }, rootM: 1.0, p: 0.55 },
+  soybean:   { en: "Soybean",   hi: "सोयाबीन", fao: "Soybeans", kc: { initial: 0.4, mid: 1.15, late: 0.5 }, rootM: 0.6, p: 0.5 },
+  cotton:    { en: "Cotton",    hi: "कपास",    fao: "Cotton", kc: { initial: 0.35, mid: 1.2, late: 0.7 }, rootM: 1.0, p: 0.65 },
+  maize:     { en: "Maize",     hi: "मक्का",    fao: "Maize, Field (grain) (field corn)", kc: { initial: 0.3, mid: 1.2, late: 0.6 }, rootM: 1.0, p: 0.55 },
+  chickpea:  { en: "Chickpea",  hi: "चना",     fao: "Chick pea", kc: { initial: 0.4, mid: 1.0, late: 0.35 }, rootM: 0.6, p: 0.5 },
+  tomato:    { en: "Tomato",    hi: "टमाटर",   fao: "Tomato", kc: { initial: 0.6, mid: 1.15, late: 0.9 }, rootM: 0.7, p: 0.4 },
+  potato:    { en: "Potato",    hi: "आलू",     fao: "Potato", kc: { initial: 0.5, mid: 1.15, late: 0.75 }, rootM: 0.4, p: 0.35 },
+  onion:     { en: "Onion",     hi: "प्याज़",    fao: "Onions - dry", kc: { initial: 0.7, mid: 1.05, late: 0.75 }, rootM: 0.3, p: 0.3 },
+  sugarcane: { en: "Sugarcane", hi: "गन्ना",    fao: "Sugar Cane", kc: { initial: 0.4, mid: 1.25, late: 0.75 }, rootM: 1.2, p: 0.65 },
+  rice:      { en: "Rice (paddy)", hi: "धान", fao: "Rice", kc: { initial: 1.05, mid: 1.2, late: 0.9 }, rootM: 0.5, p: 0.2, flooded: true },
 };
 
-// Total available water, mm per metre of root depth (FAO-56 Table 19, mid-range).
+// Total available water, mm per metre of root depth: the midpoint of the FAO-56
+// Table 19 range of (field capacity - wilting point) for that soil texture.
 export const SOILS: Record<string, { en: string; hi: string; tawMmPerM: number }> = {
-  sandy: { en: "Sandy (light)", hi: "रेतीली (हल्की)", tawMmPerM: 70 },
-  loam:  { en: "Loam (medium)", hi: "दोमट (मध्यम)", tawMmPerM: 140 },
-  clay:  { en: "Clay / black cotton soil", hi: "काली / चिकनी मिट्टी", tawMmPerM: 180 },
+  sandy: { en: "Sandy (light)", hi: "रेतीली (हल्की)", tawMmPerM: 80 },   // Sand 0.05-0.11
+  loam:  { en: "Loam (medium)", hi: "दोमट (मध्यम)", tawMmPerM: 155 },    // Loam 0.13-0.18
+  clay:  { en: "Clay / black cotton soil", hi: "काली / चिकनी मिट्टी", tawMmPerM: 160 }, // Clay 0.12-0.20
 };
 
-const DEPLETION_FRACTION = 0.5; // FAO-56 p for most field crops
 export const SQ_M_PER_ACRE = 4046.86;
 
-/** Rain that actually reaches the root zone. Light showers mostly evaporate. */
+/**
+ * Rain counted as reaching the root zone: 0.8 x P when P > 2 mm, otherwise 0.
+ * This is the app's own rule of thumb (light showers mostly evaporate); it is NOT from FAO-56.
+ */
 export function effectiveRain(mm: number): number {
   if (!Number.isFinite(mm) || mm <= 2) return 0;
   return 0.8 * mm;
@@ -39,7 +48,7 @@ export function effectiveRain(mm: number): number {
 export function readilyAvailableWater(crop: string, soil: string): number {
   const c = CROPS[crop], s = SOILS[soil];
   if (!c || !s) throw new Error(`unknown crop or soil: ${crop}, ${soil}`);
-  return DEPLETION_FRACTION * s.tawMmPerM * c.rootM;
+  return c.p * s.tawMmPerM * c.rootM;
 }
 
 /**

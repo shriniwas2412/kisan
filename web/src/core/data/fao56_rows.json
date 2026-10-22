@@ -1,0 +1,37 @@
+{
+ "_note": "Rows copied by hand from FAO Irrigation and Drainage Paper 56 (Allen et al. 1998) on fao.org, checked 2026-10-22. Kc_ini for a crop group is printed once at the top of the group. Ranges are kept as printed.",
+ "source": {
+  "table12": "https://www.fao.org/3/x0490e/x0490e0b.htm",
+  "table19": "https://www.fao.org/3/x0490e/x0490e0c.htm",
+  "table22": "https://www.fao.org/3/x0490e/x0490e0e.htm"
+ },
+ "table12": {
+  "Spring Wheat": { "ini": "0.3", "mid": "1.15", "end": "0.25-0.4" },
+  "Soybeans": { "ini": "0.4", "mid": "1.15", "end": "0.50" },
+  "Cotton": { "ini": "0.35", "mid": "1.15-1.20", "end": "0.70-0.50" },
+  "Maize, Field (grain) (field corn)": { "ini": "0.3", "mid": "1.20", "end": "0.60-0.35" },
+  "Chick pea": { "ini": "0.4", "mid": "1.00", "end": "0.35" },
+  "Tomato": { "ini": "0.6", "mid": "1.15", "end": "0.70-0.90" },
+  "Potato": { "ini": "0.5", "mid": "1.15", "end": "0.75" },
+  "Onions - dry": { "ini": "0.7", "mid": "1.05", "end": "0.75" },
+  "Sugar Cane": { "ini": "0.40", "mid": "1.25", "end": "0.75" },
+  "Rice": { "ini": "1.05", "mid": "1.20", "end": "0.90-0.60" }
+ },
+ "table22": {
+  "Spring Wheat": { "root_m": "1.0-1.5", "p": "0.55" },
+  "Soybeans": { "root_m": "0.6-1.3", "p": "0.50" },
+  "Cotton": { "root_m": "1.0-1.7", "p": "0.65" },
+  "Maize, Field (grain) (field corn)": { "root_m": "1.0-1.7", "p": "0.55" },
+  "Chick pea": { "root_m": "0.6-1.0", "p": "0.50" },
+  "Tomato": { "root_m": "0.7-1.5", "p": "0.40" },
+  "Potato": { "root_m": "0.4-0.6", "p": "0.35" },
+  "Onions - dry": { "root_m": "0.3-0.6", "p": "0.30" },
+  "Sugar Cane": { "root_m": "1.2-2.0", "p": "0.65" },
+  "Rice": { "root_m": "0.5-1.0", "p": "0.20" }
+ },
+ "table19_fc_minus_wp_m3_per_m3": {
+  "Sand": "0.05-0.11",
+  "Loam": "0.13-0.18",
+  "Clay": "0.12-0.20"
+ }
+}

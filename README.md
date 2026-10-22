@@ -2,7 +2,7 @@
 
 An offline-first web app for farmers and the field workers who visit them in Madhya Pradesh, Chhattisgarh, Vidarbha, Gujarat and Uttar Pradesh. Hindi by default, English one tap away. Works on low-cost Android phones in the browser and installs to the home screen.
 
-**Live demo:** [LIVE_DEMO_LINK](LIVE_DEMO_LINK) (opens in demo mode; no server, no sign-in).
+**Live demo:** https://shriniwas2412.github.io/kisan/ (opens in demo mode; no server, no sign-in).
 
 There are two views:
 
@@ -21,7 +21,7 @@ This replaces my earlier prototypes. The old Flutter app was a UI mock-up: its "
 - The phone also keeps its last answer, so with no internet it still shows the saved rates with the date they were saved.
 - Commodity names in the picker are the API's own strings, taken from real responses, not a guessed list.
 - Field workers can note a price they saw at the mandi. Those prices carry a separate "seen by field worker" badge and are never mixed with Agmarknet rows.
-- **Status, verified on 2026-10-19/20:** one live call through the proxy with the portal's public sample key (Madhya Pradesh, Bhopal) returned rows with the documented fields (`state, district, market, commodity, variety, grade, arrival_date, min_price, max_price, modal_price`). The sample key is limited; production needs your own free key from data.gov.in as the `DATA_GOV_IN_KEY` secret. Tests use synthetic fixtures, never live calls.
+- **Status, verified on 2026-10-19/20:** three live calls in total through the proxy with the portal's public sample key (one probe for Madhya Pradesh/Bhopal on 2026-10-19, then Madhya Pradesh/Bhopal and Madhya Pradesh state-wide on 2026-10-20 for the demo snapshot) returned rows with the documented fields (`state, district, market, commodity, variety, grade, arrival_date, min_price, max_price, modal_price`). The sample key is limited; production needs your own free key from data.gov.in as the `DATA_GOV_IN_KEY` secret. Tests use synthetic fixtures, never live calls.
 - District names for the preset places are sent as filters. If Agmarknet spells a district differently, the API returns nothing and the app says "not available" rather than guessing.
 
 ### Leaf check
@@ -50,7 +50,17 @@ How the app uses it:
 ### Irrigation and weather
 
 - Weather and reference evapotranspiration (ET₀, FAO-56 Penman-Monteith) come from Open-Meteo (free, no key), cached on the phone for 3 hours.
-- Advice is a FAO-56 soil-water balance: ETc = Kc × ET₀, minus useful rain (80% of rain above 2 mm), compared with readily available water (0.5 × TAW × root depth). Kc values are from FAO-56 Table 12 and TAW from Table 19, rounded. Paddy gets a keep-standing-water message. Tests: `web/src/core/irrigation.test.ts`.
+- Advice is a daily soil-water balance after FAO-56:
+  - water used each day since the last watering = Kc × ET₀ − useful rain, never below zero in total;
+  - readily available water RAW = p × TAW × root depth, and the advice is "irrigate" once the water used reaches RAW, unless the useful rain forecast for the next 2 days covers it ("wait");
+  - otherwise it estimates the days left from the average Kc × ET₀ of the next 3 forecast days.
+- Where each number comes from (all checked in `web/src/core/irrigation.test.ts` against the rows copied into `web/src/core/data/fao56_rows.json`):
+  - Kc: FAO-56 Table 12, from the named row per crop (wheat uses "Spring Wheat"); where a range is printed, the higher value.
+  - Root depth: Table 22; where a range is printed, the lower value, so the advice errs towards watering.
+  - p (depletion fraction): Table 22 for each crop, e.g. onion 0.30, potato 0.35, tomato 0.40, wheat 0.55, cotton 0.65. Not adjusted for the day's ETc.
+  - TAW: the midpoint of the Table 19 range for sand, loam and clay (80, 155, 160 mm per metre).
+  - Useful rain: 0.8 × the day's rain when it is above 2 mm, otherwise zero. This is the app's own rule of thumb, **not** an FAO-56 method.
+- Paddy gets a keep-standing-water message.
 - It is a rule of thumb. It ignores salinity, mulching and drip efficiency, and the app tells farmers to check soil moisture by hand first.
 
 ### Sowing times and schemes
@@ -157,7 +167,7 @@ shared/           schema rules and the CRDT, imported by web and server
 
 ## References
 
-1. Allen, R. G., Pereira, L. S., Raes, D. and Smith, M. (1998). *Crop evapotranspiration: Guidelines for computing crop water requirements.* FAO Irrigation and Drainage Paper 56.
+1. Allen, R. G., Pereira, L. S., Raes, D. and Smith, M. (1998). *Crop evapotranspiration: Guidelines for computing crop water requirements.* FAO Irrigation and Drainage Paper 56. https://www.fao.org/3/x0490e/x0490e00.htm
 2. Singh, D. et al. (2020). *PlantDoc: A Dataset for Visual Plant Disease Detection.* CoDS-COMAD 2020. https://github.com/pratikkayal/PlantDoc-Dataset
 3. Howard, A. et al. (2019). *Searching for MobileNetV3.* ICCV 2019.
 4. Agmarknet, Directorate of Marketing & Inspection. https://agmarknet.gov.in, via the Open Government Data Platform: https://data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi
