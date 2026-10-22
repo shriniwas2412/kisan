@@ -2,7 +2,8 @@ import { createApp } from "../src/app.ts";
 import { sqliteD1 } from "../src/lib/sqlite-d1.ts";
 import type { Env } from "../src/lib/d1.ts";
 
-export const SECRET = "test-secret-test-secret-test-secret-0000";
+export const SECRET = "k7Qp2vX9mR4tL8wZ1nB6cY3hF5jD0sGa";
+let lastEnv: Env | undefined;
 
 export function setup(opts: { key?: string; fetch?: typeof fetch; now?: () => number } = {}) {
   const env: Env = {
@@ -20,11 +21,14 @@ export function setup(opts: { key?: string; fetch?: typeof fetch; now?: () => nu
     ...init,
     headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...(cookie ? { cookie } : {}), ...(init.headers as object) },
   }, env);
+  lastEnv = env;
   return { app, env, req, clock, calls };
 }
 
-export async function signIn(req: ReturnType<typeof setup>["req"], email = "admin@test.example", password = "test-password-1") {
-  await req("/api/auth/register", { method: "POST", body: JSON.stringify({ name: "Test Admin", email, password }) });
+/** Admins are created only by the operator (script), never by an open sign-up. */
+export async function signIn(req: ReturnType<typeof setup>["req"], email = "admin@test.example", password = "test-password-1", env?: Env) {
+  const { createAdmin } = await import("../src/admin.ts");
+  await createAdmin(env ?? lastEnv!, { name: "Test Admin", email, password }).catch(() => {});
   const res = await req("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
   const cookie = (res.headers.get("set-cookie") ?? "").split(";")[0];
   return cookie;

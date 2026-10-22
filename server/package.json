@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
     "db:migrate:local": "wrangler d1 migrations apply kisan --local",
-    "seed:demo": "node --env-file-if-exists=.dev.vars scripts/seed-demo.ts"
+    "seed:demo": "node --env-file-if-exists=.dev.vars scripts/seed-demo.ts",
+    "create-admin": "node --env-file-if-exists=.dev.vars scripts/create-admin.ts",
+    "gen-secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64url'))\""
   },
   "engines": {
     "node": ">=23.6"

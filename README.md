@@ -65,7 +65,8 @@ How the app uses it:
 - **Withdraw consent erases.** It marks the consent as withdrawn and deletes the farmer, their visits and leaf checks. On the phone the personal fields are cleared at once. On the server the rows become tombstones: the id, the links between rows and `deleted = 1` stay (so other phones learn about the deletion), and every personal column (name, phone, village, location, crops, notes, visit notes, leaf results) is cleared. Phones that pull the tombstone replace their copy with it. A withdrawal cannot be undone by any later push, and no new visit or leaf check is accepted for that farmer (tested).
 - Pasted spreadsheet rows use the same column names as the database. Every value is checked against the schema; bad rows are listed by line with the reason and are never "fixed" automatically. Farmers need a matching consent row in the same paste (or already on the phone).
 - Sync is a CRDT: each record is a last-writer-wins map with hybrid logical clock stamps per field, so two phones editing different fields of the same farmer offline both keep their changes, whatever order they sync in (randomised test merges 5 phones in 30 orders). The server merges the same way and uses its own sequence number as the pull cursor. Stamps more than a day in the future (a phone with a wrong clock) are refused.
-- Auth: email + password, PBKDF2-SHA256 (100,000 iterations, the Workers maximum) and a signed JWT in an httpOnly, SameSite=Lax cookie. Roles are `field_worker` and `admin`. The first account becomes admin; after that only an admin can add accounts.
+- Auth: email + password, PBKDF2-SHA256 (100,000 iterations, the Workers maximum) and a signed JWT in an httpOnly, SameSite=Lax cookie. Roles are `field_worker` and `admin`. There is **no open sign-up**: the operator creates the first admin with `npm run create-admin` (below), and only an admin can add accounts. The server refuses to run with an empty, short, low-variety or placeholder `JWT_SECRET`. The plain-Node dev server listens on 127.0.0.1 unless `HOST` is set.
+- Rate limits: within 15 minutes, 5 failed sign-ins for one email, or 20 failures from one address, make further attempts wait (HTTP 429), even with the right password. Attempts are stored in D1 with a keyed hash of the address, never the address itself. Unknown emails take about as long to refuse as wrong passwords. (Tests: `server/test/auth.test.ts`.)
 
 ## Demo mode
 
@@ -84,23 +85,24 @@ Node 23.6 or newer (TypeScript runs natively in Node; tests use `node --test`).
 
 ```bash
 cd server && npm install
-cp .dev.vars.example .dev.vars   # set JWT_SECRET (32+ chars); DATA_GOV_IN_KEY is optional
+cp .dev.vars.example .dev.vars   # then set JWT_SECRET to the output of: npm run gen-secret
 cd ../web && npm install && npm run build
 cd ../server && npm run dev      # API + built app on http://localhost:8787
 ```
 
 `npm run dev` in `server/` runs the same Hono app on plain Node with a local SQLite file, so no wrangler or Docker is needed on a small machine. For live editing of the UI, run `npm run dev` in `web/` instead (Vite proxies `/api` to port 8787).
 
-Demo accounts for the local server: put `DEMO_ADMIN_EMAIL`, `DEMO_WORKER_EMAIL` and `DEMO_PASSWORD` in `server/.dev.vars` (see `.dev.vars.example`; use your own password), then:
+Demo accounts for the local server: put `DEMO_ADMIN_EMAIL`, `DEMO_WORKER_EMAIL` and `DEMO_PASSWORD` (12+ characters, your own) in `server/.dev.vars`, then:
 
 ```bash
 cd server && npm run seed:demo   # creates a demo admin and a demo field worker in .local.sqlite
 ```
 
-Sign in with either on the Sync tab. Change the password before showing it to anyone else. Or create the first (admin) account by hand:
+Sign in with either on the Sync tab. Change the password before showing it to anyone else. To create a real admin instead (local database, or `--sql` to print one INSERT for D1; only the password hash is printed):
 
 ```bash
-curl -X POST localhost:8787/api/auth/register -H 'content-type: application/json' -d '{"name":"Your Name","email":"you@example.org","password":"a-long-password"}'
+cd server && ADMIN_NAME="Your Name" ADMIN_EMAIL=you@example.org ADMIN_PASSWORD='12+ characters' npm run create-admin
+cd server && ADMIN_NAME="Your Name" ADMIN_EMAIL=you@example.org ADMIN_PASSWORD='12+ characters' npm run create-admin -- --sql
 ```
 
 Tests:
@@ -114,8 +116,9 @@ cd server && npm test   # mandi proxy cache + stale fallback, auth, sync + conse
 
 - Demo on GitHub Pages: `.github/workflows/pages.yml` runs the tests, builds `web` with `VITE_DEMO=1` and the repo name as the base path, and publishes it on every push to `main`. Turn it on once under Settings → Pages → Source: GitHub Actions. No secrets are needed.
 
-- API: Cloudflare Workers + D1. `wrangler d1 create kisan`, put the id in `server/wrangler.toml`, `wrangler d1 migrations apply kisan`, `wrangler secret put JWT_SECRET` and `DATA_GOV_IN_KEY`, then `wrangler deploy`. There is no cron: mandi prices refresh lazily when someone asks.
-- Web: any static host (Cloudflare Pages, GitHub Pages) from `web/dist`. Serve the API on the same site (for example `app.example.org` and `api.example.org`), because the session cookie is SameSite=Lax.
+- API: Cloudflare Workers + D1. `wrangler d1 create kisan`, put the id in `server/wrangler.toml`, `wrangler d1 migrations apply kisan`, `wrangler secret put JWT_SECRET` (from `npm run gen-secret`) and `DATA_GOV_IN_KEY`, `wrangler deploy`, then create the first admin with `npm run create-admin -- --sql` and `wrangler d1 execute kisan --remote --command "<that SQL>"`. There is no cron: mandi prices refresh lazily when someone asks.
+- Web: the app calls the API at the relative path `/api/...`, so the API must be on the **same origin** as the web app (for example a Workers route `app.example.org/api/*` in front of the static site). A separate API host would need an API base setting, which the app does not have yet.
+- Not checked on a real deploy: PBKDF2 with 100,000 iterations took about 84 ms per sign-in on an M1 Mac, while the Workers Free plan allows 10 ms of CPU per request, so sign-in may need the paid plan or fewer iterations.
 - D1 free tier: since 2026-09-01 the daily read/write limits are enforced and queries fail until midnight UTC once they are hit. That is fine for a pilot with about a hundred farmers, not for more.
 
 ## Architecture
