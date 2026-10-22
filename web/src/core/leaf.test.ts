@@ -77,3 +77,17 @@ test("a best guess from another plant is flagged", () => {
   assert.equal(otherPlant("tomato", { label: "grape leaf", prob: 0.7 }), true);
   assert.equal(otherPlant("tomato", { label: "Tomato leaf", prob: 0.7 }), false);
 });
+
+test("README sample sizes and intervals are derived from the eval report", async () => {
+  const evalReport = (await import("./data/leaf_eval.json", { with: { type: "json" } })).default as { n: number; top1: number; selective: { threshold: number; coverage: number; accuracy_when_confident: number }[] };
+  const sel = evalReport.selective.find(s => s.threshold === 0.6)!;
+  const confident = Math.round(sel.coverage * evalReport.n);
+  const right = Math.round(sel.accuracy_when_confident * confident);
+  assert.deepEqual([confident, right], [68, 52]);
+  const ci = (p: number, n: number) => Math.round(196 * Math.sqrt((p * (1 - p)) / n)); // 95% normal approx, in points
+  assert.equal(ci(evalReport.top1, evalReport.n), 6);
+  assert.equal(ci(sel.accuracy_when_confident, confident), 10);
+  const readme = readFileSync(new URL("../../../README.md", import.meta.url), "utf8");
+  assert.ok(readme.includes("52 of 68 confident photos (about ±10 points)"));
+  assert.ok(readme.includes("top-1 is about ±6 points"));
+});

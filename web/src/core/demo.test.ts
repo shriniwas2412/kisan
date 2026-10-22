@@ -97,3 +97,19 @@ test("README demo numbers match the demo data and the snapshot", () => {
   assert.ok(readme.includes(`shows ${snap.records.length} Agmarknet rows`));
   assert.ok(readme.includes(snapFile));
 });
+
+test("demo farmer profile: Bhopal, wheat and onion, last watered 5 days before the demo loads", async () => {
+  const { demoFarmerProfile } = await import("./demo.ts");
+  const p = demoFarmerProfile("2026-10-22");
+  assert.equal(p.placeId, "bhopal");
+  assert.deepEqual(p.crops, ["wheat", "onion"]);
+  assert.equal(p.irr.lastWatered, "2026-10-17");
+});
+
+test("demo shows a field worker's day: one follow-up due today, one overdue, one farmer added this week", async () => {
+  const { todayList } = await import("./today.ts");
+  const d = buildDemoData("2026-10-22");
+  const r = todayList(d.farmer as never, d.visit as never, [], "2026-10-22");
+  assert.deepEqual(r.due.map(x => [x.farmer.name, x.overdueDays]), [["Demo Farmer 3", 2], ["Demo Farmer 1", 0]]);
+  assert.deepEqual(r.recent.map(f => f.name), ["Demo Farmer 8"]);
+});

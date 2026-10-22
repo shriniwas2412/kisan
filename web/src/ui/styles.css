@@ -207,7 +207,8 @@ legend { font-weight: 600; padding: 0 4px; }
 .range-dot { position: absolute; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; background: var(--surface); border: 4px solid var(--ink); }
 .range-ends { display: flex; justify-content: space-between; font-size: 1rem; color: var(--muted); margin-top: 6px; }
 .read-aloud { margin-top: 8px; align-self: flex-start; }
-.link-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.link-row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.link-row a, .source-line a { display: inline-flex; align-items: center; min-height: 48px; }
 
 /* today in the field */
 .today-card { padding: 16px 20px; margin: 0 0 16px; border-radius: var(--radius-lg); background: var(--blue-soft); border: 2px solid var(--blue-ink); }

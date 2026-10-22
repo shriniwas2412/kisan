@@ -42,7 +42,8 @@ export function buildDemoData(todayIso: string): DemoData {
   const farmer: SyncRecord[] = [], consent: SyncRecord[] = [], visit: SyncRecord[] = [];
   PEOPLE.forEach((p, i) => {
     const n = i + 1, id = `${DEMO_PREFIX}F${n}`;
-    const onboarded = shift(todayIso, -30 - i * 3);
+    // Demo Farmer 8 joined 2 days ago, so the field worker's "added this week" list has someone.
+    const onboarded = i === 7 ? shift(todayIso, -2) : shift(todayIso, -30 - i * 3);
     farmer.push(stamp(null, {
       id, deleted: 0, name: `Demo Farmer ${n}`, phone: null, village: p.village, block: null, district: p.district, state: p.state,
       lat: null, lng: null, land_acres: p.land, irrigation_source: p.water, crops: p.crops, language: "hi-IN",
@@ -54,7 +55,9 @@ export function buildDemoData(todayIso: string): DemoData {
     }, DEMO_TS));
     VISITS.slice(0, 1 + (i % 2)).forEach((v, j) => visit.push(stamp(null, {
       id: `${DEMO_PREFIX}V${n}-${j + 1}`, deleted: 0, farmer_id: id, visited_on: shift(onboarded, j * 14), ...v,
-      follow_up_on: j === 0 && i % 2 === 0 ? shift(todayIso, 7) : null, source: "app", source_ref: "demo",
+      // Follow-ups: Demo Farmer 1 due today, Demo Farmer 3 two days overdue, Demo Farmer 5 next week.
+      follow_up_on: j === 0 ? ({ 0: shift(todayIso, 0), 2: shift(todayIso, -2), 4: shift(todayIso, 7) } as Record<number, string>)[i] ?? null : null,
+      source: "app", source_ref: "demo",
     }, DEMO_TS)));
   });
   return { farmer, consent, visit };
@@ -107,8 +110,10 @@ export function snapshotLabel(asOfIso: string, lang: "hi" | "en"): string {
   return lang === "hi" ? `${date} का भाव · नमूना स्नैपशॉट (आज का नहीं)` : `As of ${date} · demo snapshot (not today's price)`;
 }
 
-/** The farmer view in demo opens straight on the home screen (Bhopal; wheat and onion). */
-export const DEMO_FARMER_PROFILE = {
-  placeId: "bhopal", crops: ["wheat", "onion"], commodities: [] as string[],
-  irr: { crop: "wheat", soil: "clay", stage: "mid", lastWatered: "", areaAcres: "1" },
-};
+/** The farmer view in demo opens straight on the home screen (Bhopal; wheat and onion; last watered 5 days ago). */
+export function demoFarmerProfile(todayIso: string) {
+  return {
+    placeId: "bhopal", crops: ["wheat", "onion"], commodities: [] as string[],
+    irr: { crop: "wheat", soil: "clay", stage: "mid", lastWatered: shift(todayIso, -5), areaAcres: "1" },
+  };
+}
