@@ -31,6 +31,13 @@ export const LEAF_CROPS: LeafCrop[] = [
             hi: "मॉडल केवल स्वस्थ सोयाबीन पत्ती पहचानता है। इसमें सोयाबीन के रोग नहीं हैं।" } },
 ];
 
+/** Picker groups: the region's crops first, then crops the model cannot check, then the rest. */
+export const LEAF_GROUPS = {
+  region: ["tomato", "potato", "corn", "bell_pepper"],
+  notChecked: ["wheat", "rice", "cotton", "gram", "soybean"],
+  other: ["apple", "grape", "peach", "cherry", "strawberry", "blueberry", "raspberry", "squash"],
+};
+
 export function cropById(id: string): LeafCrop | undefined {
   return LEAF_CROPS.find(c => c.id === id);
 }

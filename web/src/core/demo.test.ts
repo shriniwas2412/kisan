@@ -36,6 +36,13 @@ function memStore(): DemoStore & { tables: Map<string, Map<string, SyncRecord>>;
   };
 }
 
+test("demo crops use the app's crop ids, and demo text is marked as demo in Hindi and English", async () => {
+  const { FARM_CROPS } = await import("./farmView.ts");
+  const ids = new Set(FARM_CROPS.map(c => c.id));
+  for (const f of data.farmer) for (const c of f.crops as { crop: string }[]) assert.ok(ids.has(c.crop), c.crop);
+  for (const v of data.visit) assert.match(String(v.purpose), /नमूना.*demo/);
+});
+
 test("load puts demo rows in without queuing them; clear removes only demo rows", async () => {
   const s = memStore();
   await s.put("farmer", { id: "01REALFARMER", name: "Test Farmer 1" });

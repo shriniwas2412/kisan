@@ -16,18 +16,18 @@ const DEMO_TS = "000000000000000:00000:demo";
 
 const PEOPLE: { village: string; district: string; state: string; crops: { crop: string; season: string; area_acres: number }[]; land: number; water: string }[] = [
   { village: "Testpur", district: "Bhopal", state: "Madhya Pradesh", crops: [{ crop: "wheat", season: "rabi", area_acres: 2 }, { crop: "soybean", season: "kharif", area_acres: 2 }], land: 2, water: "borewell" },
-  { village: "Testpur", district: "Bhopal", state: "Madhya Pradesh", crops: [{ crop: "gram", season: "rabi", area_acres: 1.5 }], land: 1.5, water: "rain only" },
+  { village: "Testpur", district: "Bhopal", state: "Madhya Pradesh", crops: [{ crop: "chickpea", season: "rabi", area_acres: 1.5 }], land: 1.5, water: "rain only" },
   { village: "Testgaon", district: "Sehore", state: "Madhya Pradesh", crops: [{ crop: "wheat", season: "rabi", area_acres: 4 }], land: 4, water: "canal" },
   { village: "Testgaon", district: "Vidisha", state: "Madhya Pradesh", crops: [{ crop: "soybean", season: "kharif", area_acres: 3 }], land: 3, water: "well" },
   { village: "Demo Nagar", district: "Indore", state: "Madhya Pradesh", crops: [{ crop: "onion", season: "rabi", area_acres: 1 }], land: 1, water: "drip" },
-  { village: "Demo Nagar", district: "Raipur", state: "Chhattisgarh", crops: [{ crop: "paddy", season: "kharif", area_acres: 2.5 }], land: 2.5, water: "canal" },
+  { village: "Demo Nagar", district: "Raipur", state: "Chhattisgarh", crops: [{ crop: "rice", season: "kharif", area_acres: 2.5 }], land: 2.5, water: "canal" },
   { village: "Testwadi", district: "Amravati", state: "Maharashtra", crops: [{ crop: "cotton", season: "kharif", area_acres: 5 }], land: 5, water: "rain only" },
   { village: "Testkheda", district: "Bareilly", state: "Uttar Pradesh", crops: [{ crop: "sugarcane", season: "perennial", area_acres: 3 }], land: 3, water: "tubewell" },
 ];
 
 const VISITS = [
-  { purpose: "first visit (demo)", observations: "demo note: field visit example", advice_given: "check soil moisture by hand before watering" },
-  { purpose: "follow-up (demo)", observations: "demo note: leaves checked with the app", advice_given: "show the leaf to the KVK if spots spread" },
+  { purpose: "पहली मुलाकात (नमूना) · first visit (demo)", observations: "नमूना नोट: खेत देखा · demo note: field visit", advice_given: "पानी देने से पहले हाथ से मिट्टी की नमी देखें · check soil moisture by hand before watering" },
+  { purpose: "दोबारा मुलाकात (नमूना) · follow-up (demo)", observations: "नमूना नोट: ऐप से पत्ती जांची · demo note: leaf checked with the app", advice_given: "धब्बे फैलें तो पत्ती KVK को दिखाएं · show the leaf to the KVK if spots spread" },
 ];
 
 function shift(todayIso: string, days: number): string {
@@ -46,7 +46,7 @@ export function buildDemoData(todayIso: string): DemoData {
     farmer.push(stamp(null, {
       id, deleted: 0, name: `Demo Farmer ${n}`, phone: null, village: p.village, block: null, district: p.district, state: p.state,
       lat: null, lng: null, land_acres: p.land, irrigation_source: p.water, crops: p.crops, language: "hi-IN",
-      onboarded_at: onboarded, source: "app", source_ref: "demo", notes: "Demo data, not a real person",
+      onboarded_at: onboarded, source: "app", source_ref: "demo", notes: "नमूना डेटा, असली व्यक्ति नहीं · Demo data, not a real person",
     }, DEMO_TS));
     consent.push(stamp(null, {
       id: `${DEMO_PREFIX}C${n}`, deleted: 0, subject_type: "farmer", subject_id: id, given_by: "self", method: "paper_signed",
@@ -106,3 +106,9 @@ export function snapshotLabel(asOfIso: string, lang: "hi" | "en"): string {
   const date = `${d}/${m}/${y}`;
   return lang === "hi" ? `${date} का भाव · नमूना स्नैपशॉट (आज का नहीं)` : `As of ${date} · demo snapshot (not today's price)`;
 }
+
+/** The farmer view in demo opens straight on the home screen (Bhopal; wheat and onion). */
+export const DEMO_FARMER_PROFILE = {
+  placeId: "bhopal", crops: ["wheat", "onion"], commodities: [] as string[],
+  irr: { crop: "wheat", soil: "clay", stage: "mid", lastWatered: "", areaAcres: "1" },
+};

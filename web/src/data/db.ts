@@ -5,7 +5,7 @@ import { openDB, type IDBPDatabase } from "idb";
 import { createClock, maxStamp, stamp, ulid, type Clock, type SyncRecord } from "../../../shared/sync.ts";
 import { applyRemote, pushPlan, tombstoneFields } from "../core/syncScope.ts";
 import type { TableName } from "../../../shared/schema.ts";
-import { buildDemoData, clearDemo as clearDemoRows, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
+import { buildDemoData, DEMO_FARMER_PROFILE, clearDemo as clearDemoRows, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
 
 const TABLES: TableName[] = ["farmer", "consent", "visit", "leaf_check", "mandi_price_manual"];
 type Store = TableName | "meta" | "outbox" | "cache";
@@ -170,6 +170,7 @@ export const isDemoLoaded = async () => !!(await meta<string>("demoLoadedAt"));
 
 export async function loadDemo(todayIso: string) {
   await loadDemoRows(demoStore(await db()), buildDemoData(todayIso));
+  if (!(await meta("farmerProfile"))) await setMeta("farmerProfile", DEMO_FARMER_PROFILE);
   await setMeta("demoLoadedAt", new Date().toISOString());
   notify();
 }
