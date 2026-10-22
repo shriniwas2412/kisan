@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
+import { precachePlugin } from "./build/precache.ts";
 
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [preact(), precachePlugin()],
   server: {
     fs: { allow: [".."] }, // ../shared
     // Same origin in dev, so the session cookie works without CORS.
