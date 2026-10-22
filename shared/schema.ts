@@ -153,3 +153,20 @@ export function checkRow(table: TableName, raw: Row): { row: Row; problems: Prob
 export function consentAllowsStore(c: Row | undefined | null): boolean {
   return !!c && Number(c.scope_store) === 1 && empty(c.withdrawn_at) && !Number(c.deleted);
 }
+
+/** True when the subject also agreed to their record going to the team server. */
+export function consentAllowsSync(c: Row | undefined | null): boolean {
+  return consentAllowsStore(c) && Number(c!.scope_sync) === 1;
+}
+
+/** Columns that identify or describe a person; cleared when a record is deleted or consent withdrawn. */
+export const PERSONAL: Record<"farmer" | "visit" | "leaf_check" | "consent", string[]> = {
+  farmer: ["name", "phone", "village", "block", "district", "state", "lat", "lng", "land_acres", "irrigation_source",
+    "crops", "language", "onboarded_at", "source", "source_ref", "notes"],
+  visit: ["visited_on", "purpose", "observations", "advice_given", "follow_up_on", "source", "source_ref"],
+  leaf_check: ["crop", "top3", "abstained", "checked_at"],
+  consent: ["guardian_name", "guardian_relation", "evidence_ref"],
+};
+
+/** NOT NULL columns get an empty string instead of null when cleared. */
+export const NOT_NULL_BLANK: Record<string, string[]> = { farmer: ["name"], visit: ["visited_on"] };

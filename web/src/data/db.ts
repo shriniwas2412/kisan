@@ -2,7 +2,8 @@
 // hybrid logical clock and queued in the outbox; sync() pushes the outbox and merges
 // whatever the server sends back, field by field (same CRDT as the server).
 import { openDB, type IDBPDatabase } from "idb";
-import { createClock, mergeRecord, maxStamp, stamp, ulid, type Clock, type SyncRecord } from "../../../shared/sync.ts";
+import { createClock, maxStamp, stamp, ulid, type Clock, type SyncRecord } from "../../../shared/sync.ts";
+import { applyRemote, pushPlan, tombstoneFields } from "../core/syncScope.ts";
 import type { TableName } from "../../../shared/schema.ts";
 import { buildDemoData, clearDemo as clearDemoRows, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
 
@@ -72,8 +73,10 @@ export async function save<T extends Record<string, unknown>>(table: TableName, 
   return next;
 }
 
+/** Delete a row on this phone: deleted=1 and its personal fields cleared (not just hidden). */
 export async function remove(table: TableName, id: string) {
-  await save(table, { id, deleted: 1 });
+  const fields = table === "farmer" || table === "visit" || table === "leaf_check" ? tombstoneFields(table) : { deleted: 1 };
+  await save(table, { id, ...fields });
 }
 
 export async function pendingCount(): Promise<number> {
@@ -94,17 +97,26 @@ export function onChange(fn: () => void) { listeners.add(fn); return () => liste
 function notify() { for (const fn of listeners) fn(); }
 
 // --- sync ---
-export type SyncReport = { at: string; accepted: number; rejected: { table: string; id: string; reason: string }[]; pulled: number };
+export type SyncReport = { at: string; accepted: number; rejected: { table: string; id: string; reason: string }[]; pulled: number;
+  /** Rows kept on this phone because the farmer did not agree to sync. */ keptLocal: number };
 
 /** Push the outbox, pull changes, merge. Throws on network or auth errors. */
 export async function sync(fetchImpl: typeof fetch = fetch): Promise<SyncReport> {
   const d = await db();
-  const report: SyncReport = { at: new Date().toISOString(), accepted: 0, rejected: [], pulled: 0 };
+  const report: SyncReport = { at: new Date().toISOString(), accepted: 0, rejected: [], pulled: 0, keptLocal: 0 };
   let more = true;
   let first = true;
   while (more) {
-    // Demo rows never leave the phone.
-    const keys = first ? ((await d.getAllKeys("outbox")) as string[]).filter(k => !isDemoId(k.split(":")[1] ?? "")) : [];
+    // Only farmers who agreed to sync (and never demo rows) leave the phone.
+    let keys: string[] = [];
+    if (first) {
+      const all = (await d.getAllKeys("outbox")) as string[];
+      const rows = new Map<string, SyncRecord>();
+      for (const k of all) { const [t, id] = k.split(":"); const r = await d.get(t, id); if (r) rows.set(k, r); }
+      const plan = pushPlan(all, k => rows.get(k), (await d.getAll("consent")) as SyncRecord[]);
+      keys = plan.push;
+      report.keptLocal = plan.keptLocal.length;
+    }
     const queued = new Map<string, string>();
     for (const k of keys) queued.set(k, await d.get("outbox", k));
     first = false;
@@ -126,7 +138,9 @@ export async function sync(fetchImpl: typeof fetch = fetch): Promise<SyncReport>
     for (const [t, list] of Object.entries(body.changes)) {
       c.observe(maxStamp(list));
       for (const remote of list) {
-        await d.put(t, mergeRecord(await d.get(t, remote.id), remote));
+        await d.put(t, applyRemote(await d.get(t, remote.id), remote));
+        // A record deleted on the server can't be edited back; drop any queued edit to it.
+        if (Number(remote.deleted)) await d.delete("outbox", `${t}:${remote.id}`);
         report.pulled++;
       }
     }

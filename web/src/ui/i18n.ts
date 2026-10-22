@@ -160,7 +160,8 @@ const S = {
   fixErrors: { hi: "लाल वाले खाने ठीक करें", en: "Fix the fields marked in red" },
   saved: { hi: "सेव हो गया", en: "Saved" },
   withdraw: { hi: "सहमति वापस और रिकॉर्ड हटाएं", en: "Withdraw consent and delete record" },
-  withdrawConfirm: { hi: "इस किसान और उनकी सभी मुलाकातों को हटाएं? यह वापस नहीं होगा।", en: "Delete this farmer and all their visits? This cannot be undone." },
+  withdrawConfirm: { hi: "इस किसान का नाम, फ़ोन, गांव, मुलाकातें और पत्ती जांच इस फ़ोन से अभी हटेंगी, और अगले सिंक पर सर्वर से भी। यह वापस नहीं होगा। हटाएं?", en: "This farmer's name, phone, village, visits and leaf checks are erased from this phone now, and from the server at the next sync. This cannot be undone. Erase?" },
+  keptLocal: { hi: "इसी फ़ोन पर रखे (सिंक की सहमति नहीं)", en: "Kept on this phone (no consent to sync)" },
   consentOnFile: { hi: "सहमति दर्ज", en: "Consent on file" },
 
   importTitle: { hi: "स्प्रेडशीट से किसान जोड़ें", en: "Add farmers from a spreadsheet" },

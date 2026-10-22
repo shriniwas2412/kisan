@@ -179,6 +179,7 @@ function FarmerDetail({ id }: { id: string }) {
     if (!confirm(t("withdrawConfirm"))) return;
     if (consent) await save("consent", { id: consent.id, withdrawn_at: today() });
     for (const v of mine) await remove("visit", v.id);
+    for (const c of (checks ?? []).filter(c => c.farmer_id === id)) await remove("leaf_check", c.id);
     await remove("farmer", id);
     location.hash = "/fw";
   }
@@ -321,6 +322,7 @@ function SyncScreen() {
       <section class="card">
         <p>{t("pending")}: <b>{pending}</b></p>
         <p>{t("lastSync")}: {last ? new Date(last.at).toLocaleString("en-IN") : t("never")}</p>
+        {last && last.keptLocal > 0 && <p>{t("keptLocal")}: <b>{last.keptLocal}</b></p>}
         {last && last.rejected.length > 0 && (
           <Notice kind="warn" title={`${t("rejected")}: ${last.rejected.length}`}>
             <ul>{last.rejected.map(r => <li key={`${r.table}:${r.id}`}>{r.table} {r.id}: {reasonText(r.reason)}</li>)}</ul>
