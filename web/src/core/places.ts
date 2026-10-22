@@ -20,3 +20,12 @@ export const STATES = [...new Set(PLACES.map(p => p.state))];
 export function placeById(id: string | undefined): Place | undefined {
   return PLACES.find(p => p.id === id);
 }
+
+const STATE_HI: Record<string, string> = {
+  "Madhya Pradesh": "मध्य प्रदेश", Chhattisgarh: "छत्तीसगढ़", Maharashtra: "महाराष्ट्र", "Uttar Pradesh": "उत्तर प्रदेश", Gujarat: "गुजरात",
+};
+
+/** State name for display; the stored value stays the API's English string. */
+export function stateName(state: string, lang: "hi" | "en"): string {
+  return lang === "hi" ? STATE_HI[state] ?? state : state;
+}

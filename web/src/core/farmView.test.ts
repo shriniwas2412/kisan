@@ -74,3 +74,10 @@ test("'last watered' choices map to dates; 'earlier' asks for a date", () => {
     { key: "w_today", date: "2026-10-22" }, { key: "w_yesterday", date: "2026-10-21" },
     { key: "w_2_3", date: "2026-10-19" }, { key: "w_week", date: "2026-10-15" }, { key: "w_earlier", date: null }]);
 });
+
+test("every state in the app has a Hindi name for pickers", async () => {
+  const { STATES, stateName } = await import("./places.ts");
+  for (const s of STATES) assert.notEqual(stateName(s, "hi"), s, s);
+  assert.equal(stateName("Madhya Pradesh", "hi"), "मध्य प्रदेश");
+  assert.equal(stateName("Madhya Pradesh", "en"), "Madhya Pradesh");
+});

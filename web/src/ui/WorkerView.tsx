@@ -11,7 +11,7 @@ import { cropName, FARM_CROPS, seasonHi, shortDate } from "../core/farmView.ts";
 import { currentUser, signIn, signOut, type User } from "../data/api.ts";
 import { checkRow, consentAllowsStore, type Problem, type Row } from "../../../shared/schema.ts";
 import { importFarmers, FARMER_COLUMNS, CONSENT_COLUMNS, type ImportResult } from "../core/importFarmers.ts";
-import { STATES } from "../core/places.ts";
+import { STATES, stateName } from "../core/places.ts";
 import { MandiScreen } from "./MandiScreen.tsx";
 import { LeafScreen } from "./LeafScreen.tsx";
 import { IrrigationScreen, DEFAULT_IRR, type IrrPrefs } from "./WeatherScreen.tsx";
@@ -221,7 +221,7 @@ function Onboard() {
         {inp("village", t("village"))}
         {inp("block", t("block"))}
         {inp("district", t("district"))}
-        <Select label={t("state")} value={f.state} onChange={v => setF({ ...f, state: v })} options={STATES.map(s => ({ value: s, label: s }))} />
+        <Select label={t("state")} value={f.state} onChange={v => setF({ ...f, state: v })} options={STATES.map(s => ({ value: s, label: stateName(s, getLang()) }))} />
         {inp("land_acres", t("landAcres"), "number")}
         {inp("irrigation_source", t("irrigationSource"))}
         <fieldset class={`crops${err("crops") ? " has-error" : ""}`}>
