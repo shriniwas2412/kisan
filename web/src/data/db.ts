@@ -79,6 +79,10 @@ export async function remove(table: TableName, id: string) {
   await save(table, { id, ...fields });
 }
 
+export async function outboxKeys(): Promise<string[]> {
+  return (await (await db()).getAllKeys("outbox")) as string[];
+}
+
 export async function pendingCount(): Promise<number> {
   return (await db()).count("outbox");
 }
