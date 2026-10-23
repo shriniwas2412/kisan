@@ -23,9 +23,10 @@ function useHash() {
 
 /** Demo state; the hosted demo build loads the demo once on first open. */
 function useDemo() {
-  const [on, setOn] = useState(false);
+  // The banner shows from the first paint in demo mode, even while the demo is still being written.
+  const [on, setOn] = useState(currentMode(DEMO_BUILD) === "demo");
   useEffect(() => {
-    const check = () => isDemoLoaded().then(setOn);
+    const check = () => isDemoLoaded().then(l => setOn(l || currentMode(DEMO_BUILD) === "demo"));
     (async () => {
       if (currentMode(DEMO_BUILD) === "demo" && !(await isDemoLoaded())) await loadDemo(today());
       check();
