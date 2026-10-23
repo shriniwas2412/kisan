@@ -5,14 +5,16 @@ import { openDB, type IDBPDatabase } from "idb";
 import { createClock, maxStamp, stamp, ulid, type Clock, type SyncRecord } from "../../../shared/sync.ts";
 import { applyRemote, pushPlan, tombstoneFields } from "../core/syncScope.ts";
 import type { TableName } from "../../../shared/schema.ts";
-import { buildDemoData, demoFarmerProfile, clearDemo as clearDemoRows, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
+import { currentMode, dbFor, leaveDemo } from "./demoMode.ts";
+import { DEMO_BUILD } from "./api.ts";
+import { buildDemoData, demoFarmerProfile, isDemoId, loadDemo as loadDemoRows, type DemoStore } from "../core/demo.ts";
 
 const TABLES: TableName[] = ["farmer", "consent", "visit", "leaf_check", "mandi_price_manual"];
 type Store = TableName | "meta" | "outbox" | "cache";
 
 let dbp: Promise<IDBPDatabase> | null = null;
 function db() {
-  dbp ??= openDB("kisan", 1, {
+  dbp ??= openDB(dbFor(currentMode(DEMO_BUILD)), 1, {
     upgrade(d) {
       for (const t of TABLES) d.createObjectStore(t, { keyPath: "id" });
       d.createObjectStore("meta");
@@ -179,16 +181,8 @@ export async function loadDemo(todayIso: string) {
   notify();
 }
 
+/** Clear demo = delete the separate demo database and return to real records. */
 export async function clearDemo() {
-  const d = await db();
-  await clearDemoRows(demoStore(d));
-  // Rows the user added to a demo farmer (a visit, a leaf check) go too.
-  for (const t of ["visit", "leaf_check"] as const) {
-    for (const r of (await d.getAll(t)) as SyncRecord[]) {
-      if (isDemoId(String(r.farmer_id ?? ""))) { await d.delete(t, r.id); await d.delete("outbox", `${t}:${r.id}`); }
-    }
-  }
-  await setMeta("demoLoadedAt", null);
-  await setMeta("demoCleared", true);
-  notify();
+  (await db()).close();
+  await leaveDemo();
 }

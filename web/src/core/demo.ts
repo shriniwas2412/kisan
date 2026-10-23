@@ -1,4 +1,5 @@
-// Demo mode. Synthetic farmers (clearly named "Demo Farmer N") with consent and visits,
+// Demo mode. 48 seeded synthetic farmers (clearly named "Demo Farmer N") across real districts,
+// with consent, visits, irrigation notes and leaf-check history,
 // and a real, dated Agmarknet snapshot for mandi prices. Demo rows have ids starting
 // with DEMO-, are never queued for sync, and can be removed in one step.
 import { stamp, type SyncRecord } from "../../../shared/sync.ts";
@@ -8,27 +9,54 @@ export const DEMO_PREFIX = "DEMO-";
 /** The committed snapshot under web/public/ (checked by demo.test.ts). */
 export const SNAPSHOT_FILE = "demo/mandi-snapshot-2026-10-20.json";
 export const isDemoId = (id: string) => id.startsWith(DEMO_PREFIX);
-export const DEMO_TABLES = ["farmer", "consent", "visit"] as const;
+export const DEMO_TABLES = ["farmer", "consent", "visit", "leaf_check"] as const;
 export type DemoTable = (typeof DEMO_TABLES)[number];
 
 // The oldest possible stamp: any real edit on the phone wins over demo values.
 const DEMO_TS = "000000000000000:00000:demo";
 
-const PEOPLE: { village: string; district: string; state: string; crops: { crop: string; season: string; area_acres: number }[]; land: number; water: string }[] = [
-  { village: "Testpur", district: "Bhopal", state: "Madhya Pradesh", crops: [{ crop: "wheat", season: "rabi", area_acres: 2 }, { crop: "soybean", season: "kharif", area_acres: 2 }], land: 2, water: "borewell" },
-  { village: "Testpur", district: "Bhopal", state: "Madhya Pradesh", crops: [{ crop: "chickpea", season: "rabi", area_acres: 1.5 }], land: 1.5, water: "rain only" },
-  { village: "Testgaon", district: "Sehore", state: "Madhya Pradesh", crops: [{ crop: "wheat", season: "rabi", area_acres: 4 }], land: 4, water: "canal" },
-  { village: "Testgaon", district: "Vidisha", state: "Madhya Pradesh", crops: [{ crop: "soybean", season: "kharif", area_acres: 3 }], land: 3, water: "well" },
-  { village: "Demo Nagar", district: "Indore", state: "Madhya Pradesh", crops: [{ crop: "onion", season: "rabi", area_acres: 1 }], land: 1, water: "drip" },
-  { village: "Demo Nagar", district: "Raipur", state: "Chhattisgarh", crops: [{ crop: "rice", season: "kharif", area_acres: 2.5 }], land: 2.5, water: "canal" },
-  { village: "Testwadi", district: "Amravati", state: "Maharashtra", crops: [{ crop: "cotton", season: "kharif", area_acres: 5 }], land: 5, water: "rain only" },
-  { village: "Testkheda", district: "Bareilly", state: "Uttar Pradesh", crops: [{ crop: "sugarcane", season: "perennial", area_acres: 3 }], land: 3, water: "tubewell" },
+/** mulberry32: tiny seeded PRNG, so the demo is the same on every device and in every test. */
+export function rng(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+export const DEMO_SEED = 2412;
+export const DEMO_FARMERS = 48;
+
+// Real districts where the field work happened; villages are invented ("Test…").
+// Crops are the ones commonly grown there, so the demo looks plausible, not measured.
+const DISTRICTS: { district: string; state: string; villages: string[]; crops: { crop: string; season: string }[]; water: string[] }[] = [
+  { district: "Bhopal", state: "Madhya Pradesh", villages: ["Testpur", "Demo Kheda"], crops: [{ crop: "wheat", season: "rabi" }, { crop: "soybean", season: "kharif" }, { crop: "chickpea", season: "rabi" }], water: ["borewell", "rain only", "canal"] },
+  { district: "Sehore", state: "Madhya Pradesh", villages: ["Testgaon", "Demo Tola"], crops: [{ crop: "wheat", season: "rabi" }, { crop: "soybean", season: "kharif" }], water: ["canal", "borewell"] },
+  { district: "Indore", state: "Madhya Pradesh", villages: ["Demo Nagar", "Testkhedi"], crops: [{ crop: "onion", season: "rabi" }, { crop: "potato", season: "rabi" }, { crop: "soybean", season: "kharif" }], water: ["drip", "borewell"] },
+  { district: "Raipur", state: "Chhattisgarh", villages: ["Testdih", "Demo Para"], crops: [{ crop: "rice", season: "kharif" }, { crop: "chickpea", season: "rabi" }], water: ["canal", "pond"] },
+  { district: "Amravati", state: "Maharashtra", villages: ["Testwadi", "Demo Pur"], crops: [{ crop: "cotton", season: "kharif" }, { crop: "soybean", season: "kharif" }, { crop: "tomato", season: "rabi" }], water: ["rain only", "well"] },
+  { district: "Bareilly", state: "Uttar Pradesh", villages: ["Testkheda", "Demo Ganj"], crops: [{ crop: "sugarcane", season: "perennial" }, { crop: "wheat", season: "rabi" }, { crop: "rice", season: "kharif" }], water: ["tubewell", "canal"] },
+  { district: "Ahmedabad", state: "Gujarat", villages: ["Testpura"], crops: [{ crop: "cotton", season: "kharif" }, { crop: "wheat", season: "rabi" }], water: ["canal", "drip"] },
+  { district: "Rajkot", state: "Gujarat", villages: ["Demo Vadi"], crops: [{ crop: "cotton", season: "kharif" }, { crop: "maize", season: "kharif" }], water: ["well", "drip"] },
+  { district: "Anand", state: "Gujarat", villages: ["Testnagar"], crops: [{ crop: "tomato", season: "rabi" }, { crop: "potato", season: "rabi" }], water: ["canal", "borewell"] },
 ];
 
-const VISITS = [
-  { purpose: "पहली मुलाकात (नमूना) · first visit (demo)", observations: "नमूना नोट: खेत देखा · demo note: field visit", advice_given: "पानी देने से पहले हाथ से मिट्टी की नमी देखें · check soil moisture by hand before watering" },
-  { purpose: "दोबारा मुलाकात (नमूना) · follow-up (demo)", observations: "नमूना नोट: ऐप से पत्ती जांची · demo note: leaf checked with the app", advice_given: "धब्बे फैलें तो पत्ती KVK को दिखाएं · show the leaf to the KVK if spots spread" },
+const PURPOSES = [
+  { purpose: "पहली मुलाकात (नमूना) · first visit (demo)", observations: "नमूना नोट: खेत देखा, फ़सल ठीक · demo note: field seen, crop fine", advice_given: "पानी देने से पहले हाथ से मिट्टी की नमी देखें · check soil moisture by hand before watering" },
+  { purpose: "सिंचाई सलाह (नमूना) · irrigation advice (demo)", observations: "नमूना नोट: पिछली सिंचाई 6 दिन पहले, मिट्टी सूखी · demo note: last watered 6 days ago, soil dry", advice_given: "ऐप की सिंचाई सलाह देखी; हल्की सिंचाई · checked the app's irrigation tip; light watering" },
+  { purpose: "पत्ती जांच (नमूना) · leaf check (demo)", observations: "नमूना नोट: ऐप से पत्ती जांची · demo note: leaf checked with the app", advice_given: "धब्बे फैलें तो पत्ती KVK को दिखाएं · show the leaf to the KVK if spots spread" },
+  { purpose: "मंडी भाव (नमूना) · mandi prices (demo)", observations: "नमूना नोट: भाव देखे, बेचने का फ़ैसला किसान का · demo note: prices checked, selling is the farmer's call", advice_given: "Agmarknet पर ताज़ा भाव देखें · check the latest Agmarknet price" },
 ];
+
+// Crops the leaf model has classes for, with labels from labels.json (healthy first).
+const LEAF_LABELS: Record<string, string[]> = {
+  tomato: ["Tomato leaf", "Tomato Early blight leaf", "Tomato Septoria leaf spot", "Tomato leaf late blight", "Tomato leaf yellow virus"],
+  potato: ["Potato leaf early blight", "Potato leaf late blight"],
+  maize: ["Corn leaf blight", "Corn Gray leaf spot", "Corn rust leaf"],
+  soybean: ["Soyabean leaf"],
+};
 
 function shift(todayIso: string, days: number): string {
   const d = new Date(`${todayIso}T00:00:00Z`);
@@ -38,29 +66,58 @@ function shift(todayIso: string, days: number): string {
 
 export type DemoData = Record<DemoTable, SyncRecord[]>;
 
-export function buildDemoData(todayIso: string): DemoData {
-  const farmer: SyncRecord[] = [], consent: SyncRecord[] = [], visit: SyncRecord[] = [];
-  PEOPLE.forEach((p, i) => {
+export function buildDemoData(todayIso: string, seed: number = DEMO_SEED): DemoData {
+  const r = rng(seed);
+  const pick = <T>(xs: readonly T[]) => xs[Math.floor(r() * xs.length)];
+  const farmer: SyncRecord[] = [], consent: SyncRecord[] = [], visit: SyncRecord[] = [], leaf_check: SyncRecord[] = [];
+  for (let i = 0; i < DEMO_FARMERS; i++) {
     const n = i + 1, id = `${DEMO_PREFIX}F${n}`;
-    // Demo Farmer 8 joined 2 days ago, so the field worker's "added this week" list has someone.
-    const onboarded = i === 7 ? shift(todayIso, -2) : shift(todayIso, -30 - i * 3);
+    const place = DISTRICTS[i % DISTRICTS.length];
+    const land = Math.round((0.5 + r() * 5.5) * 2) / 2;
+    const first = pick(place.crops);
+    const second = r() < 0.5 ? pick(place.crops.filter(c => c.crop !== first.crop)) : undefined;
+    const crops = [first, ...(second ? [second] : [])].map(c => ({ ...c, area_acres: second ? Math.round(land * 5) / 10 : land }));
+    // Farmer 8 joined 2 days ago, so "added this week" has someone; others over the last ~4 months.
+    const onboarded = i === 7 ? shift(todayIso, -2) : shift(todayIso, -(20 + Math.floor(r() * 100)));
     farmer.push(stamp(null, {
-      id, deleted: 0, name: `Demo Farmer ${n}`, phone: null, village: p.village, block: null, district: p.district, state: p.state,
-      lat: null, lng: null, land_acres: p.land, irrigation_source: p.water, crops: p.crops, language: "hi-IN",
+      id, deleted: 0, name: `Demo Farmer ${n}`, phone: null, village: pick(place.villages), block: null, district: place.district, state: place.state,
+      lat: null, lng: null, land_acres: land, irrigation_source: pick(place.water), crops, language: place.state === "Gujarat" ? "gu-IN" : place.state === "Maharashtra" ? "mr-IN" : "hi-IN",
       onboarded_at: onboarded, source: "app", source_ref: "demo", notes: "नमूना डेटा, असली व्यक्ति नहीं · Demo data, not a real person",
     }, DEMO_TS));
+    const research = r() < 0.4 ? 1 : 0;
     consent.push(stamp(null, {
-      id: `${DEMO_PREFIX}C${n}`, deleted: 0, subject_type: "farmer", subject_id: id, given_by: "self", method: "paper_signed",
-      scope_store: 1, scope_sync: 0, scope_research_aggregate: 0, language: "hi-IN", recorded_at: onboarded,
+      id: `${DEMO_PREFIX}C${n}`, deleted: 0, subject_type: "farmer", subject_id: id, given_by: r() < 0.9 ? "self" : "guardian",
+      guardian_name: null, guardian_relation: null, method: pick(["paper_signed", "verbal_recorded"]),
+      scope_store: 1, scope_sync: 0, scope_research_aggregate: research, language: "hi-IN", recorded_at: onboarded,
     }, DEMO_TS));
-    VISITS.slice(0, 1 + (i % 2)).forEach((v, j) => visit.push(stamp(null, {
-      id: `${DEMO_PREFIX}V${n}-${j + 1}`, deleted: 0, farmer_id: id, visited_on: shift(onboarded, j * 14), ...v,
-      // Follow-ups: Demo Farmer 1 due today, Demo Farmer 3 two days overdue, Demo Farmer 5 next week.
-      follow_up_on: j === 0 ? ({ 0: shift(todayIso, 0), 2: shift(todayIso, -2), 4: shift(todayIso, 7) } as Record<number, string>)[i] ?? null : null,
-      source: "app", source_ref: "demo",
-    }, DEMO_TS)));
-  });
-  return { farmer, consent, visit };
+    const nVisits = [0, 2, 4].includes(i) ? 1 : 1 + Math.floor(r() * 3); // open follow-ups stay open
+    for (let j = 0; j < nVisits; j++) {
+      const on = shift(onboarded, j * (10 + Math.floor(r() * 15)));
+      if (on > todayIso) break;
+      const v = j === 0 ? PURPOSES[0] : pick(PURPOSES.slice(1));
+      visit.push(stamp(null, {
+        id: `${DEMO_PREFIX}V${n}-${j + 1}`, deleted: 0, farmer_id: id, visited_on: on, ...v,
+        // Follow-ups: Farmer 1 due today, Farmer 3 two days overdue, Farmer 5 next week.
+        follow_up_on: j === 0 ? ({ 0: shift(todayIso, 0), 2: shift(todayIso, -2), 4: shift(todayIso, 7) } as Record<number, string>)[i] ?? null : null,
+        source: "app", source_ref: "demo",
+      }, DEMO_TS));
+      const leafCrop = crops.find(c => LEAF_LABELS[c.crop])?.crop;
+      if (v === PURPOSES[2] && leafCrop) {
+        // A made-up model output, shaped like a real one: three labels, probabilities summing below 1.
+        const labels = [...LEAF_LABELS[leafCrop]];
+        const top = labels.splice(Math.floor(r() * labels.length), 1)[0];
+        const p1 = Math.round((0.35 + r() * 0.5) * 100) / 100;
+        const rest = [...labels, "Tomato leaf", "Potato leaf early blight"].filter(l => l !== top).slice(0, 2);
+        const p2 = Math.round(((1 - p1) * 0.6) * 100) / 100, p3 = Math.round(((1 - p1) * 0.25) * 100) / 100;
+        leaf_check.push(stamp(null, {
+          id: `${DEMO_PREFIX}L${n}-${j + 1}`, deleted: 0, farmer_id: id, crop: leafCrop,
+          top3: [{ label: top, prob: p1 }, { label: rest[0], prob: p2 }, { label: rest[1], prob: p3 }],
+          abstained: p1 < 0.6 ? 1 : 0, checked_at: `${on}T06:30:00.000Z`,
+        }, DEMO_TS));
+      }
+    }
+  }
+  return { farmer, consent, visit, leaf_check };
 }
 
 /** Minimal storage the demo needs; the app passes IndexedDB, tests pass a Map. */

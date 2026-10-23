@@ -7,10 +7,10 @@ import type { SyncRecord } from "../../../shared/sync.ts";
 
 const data = buildDemoData("2026-10-20");
 
-test("demo data: 8 clearly named synthetic farmers, each valid and with consent", () => {
-  assert.equal(data.farmer.length, 8);
+test("demo data: 48 clearly named synthetic farmers, each valid and with consent", () => {
+  assert.equal(data.farmer.length, 48);
   for (const f of data.farmer) {
-    assert.match(String(f.name), /^Demo Farmer \d$/);
+    assert.match(String(f.name), /^Demo Farmer \d+$/);
     assert.ok(isDemoId(f.id));
     assert.equal(f.phone, null, "no phone numbers in demo data");
     assert.deepEqual(checkRow("farmer", f).problems, [], f.id);
@@ -21,6 +21,22 @@ test("demo data: 8 clearly named synthetic farmers, each valid and with consent"
     assert.ok(data.farmer.some(f => f.id === v.farmer_id));
   }
   for (const c of data.consent) assert.deepEqual(checkRow("consent", c).problems, [], c.id);
+  for (const l of data.leaf_check) {
+    assert.deepEqual(checkRow("leaf_check", l).problems, [], l.id);
+    assert.equal(l.abstained, (l.top3 as { prob: number }[])[0].prob < 0.6 ? 1 : 0, "abstains below 0.6 like the app");
+  }
+});
+
+test("demo is deterministic, spread over the real districts, with visits and leaf checks", async () => {
+  assert.deepEqual(buildDemoData("2026-10-20"), data);
+  const districts = new Set(data.farmer.map(f => f.district));
+  for (const d of ["Bhopal", "Sehore", "Indore", "Raipur", "Amravati", "Bareilly", "Ahmedabad", "Rajkot", "Anand"]) assert.ok(districts.has(d), d);
+  assert.ok(data.visit.length >= data.farmer.length);
+  assert.ok(data.leaf_check.length >= 3);
+  assert.ok(data.visit.some(v => /सिंचाई/.test(String(v.purpose))));
+  const labels = JSON.parse(readFileSync(new URL("../../public/model/labels.json", import.meta.url), "utf8")) as string[];
+  for (const l of data.leaf_check) for (const g of l.top3 as { label: string }[]) assert.ok(labels.includes(g.label), g.label);
+  assert.ok(data.visit.every(v => String(v.visited_on) <= "2026-10-20"));
 });
 
 function memStore(): DemoStore & { tables: Map<string, Map<string, SyncRecord>>; outbox: Set<string> } {
@@ -48,7 +64,7 @@ test("load puts demo rows in without queuing them; clear removes only demo rows"
   await s.put("farmer", { id: "01REALFARMER", name: "Test Farmer 1" });
   s.outbox.add("farmer:01REALFARMER");
   const n = await loadDemo(s, data);
-  assert.equal(n, data.farmer.length + data.consent.length + data.visit.length);
+  assert.equal(n, data.farmer.length + data.consent.length + data.visit.length + data.leaf_check.length);
   assert.equal(s.outbox.size, 1, "demo rows are not queued for sync");
   s.outbox.add("farmer:DEMO-F1"); // an edit to a demo farmer
   const removed = await clearDemo(s);

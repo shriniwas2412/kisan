@@ -194,7 +194,7 @@ const S = {
   demoWhat: { hi: "पहली बार देख रहे हैं? नमूना डेटा के साथ ऐप आज़माएं। ये असली किसान नहीं हैं।", en: "First time here? Try the app with demo data. These are not real farmers." },
   demoTry: { hi: "नमूना देखें", en: "Try demo" },
   demoBanner: { hi: "नमूना डेटा", en: "Demo data" },
-  demoBannerWhy: { hi: "किसान और मुलाकातें काल्पनिक हैं। मंडी भाव एक पुराना असली स्नैपशॉट है।", en: "Farmers and visits are made up. Mandi rates are an old real snapshot." },
+  demoBannerWhy: { hi: "48 किसान, मुलाकातें और पत्ती जांच बनावटी हैं, असली नतीजे नहीं। मंडी भाव एक पुराना असली स्नैपशॉट है।", en: "48 farmers, visits and leaf checks are synthetic, not field results. Mandi rates are an old real snapshot." },
   demoClear: { hi: "नमूना डेटा हटाएं", en: "Clear demo data" },
   snapshotTitle: { hi: "यह आज का भाव नहीं है", en: "This is not today's price" },
   snapshotWhy: { hi: "डेमो में सर्वर नहीं है, इसलिए Agmarknet से एक बार सेव किए असली भाव दिख रहे हैं। तारीख देखें।", en: "The demo has no server, so it shows real Agmarknet prices saved once. Check the date." },

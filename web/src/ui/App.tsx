@@ -5,6 +5,7 @@ import { WorkerView } from "./WorkerView.tsx";
 import { Icon } from "./icons.tsx";
 import { clearDemo, isDemoLoaded, loadDemo, meta, onChange } from "../data/db.ts";
 import { DEMO_BUILD } from "../data/api.ts";
+import { currentMode, enterDemo } from "../data/demoMode.ts";
 
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
@@ -25,7 +26,7 @@ function useDemo() {
   useEffect(() => {
     const check = () => isDemoLoaded().then(setOn);
     (async () => {
-      if (DEMO_BUILD && !(await isDemoLoaded()) && !(await meta<boolean>("demoCleared"))) await loadDemo(today());
+      if (currentMode(DEMO_BUILD) === "demo" && !(await isDemoLoaded())) await loadDemo(today());
       check();
     })();
     return onChange(check);
@@ -36,7 +37,7 @@ function useDemo() {
 function DemoBanner() {
   return (
     <div class="demo-banner" role="note">
-      <p><b>{t("demoBanner")}</b> {t("demoBannerWhy")}</p>
+      <p><b>Demo / नमूना</b> · {t("demoBannerWhy")}</p>
       <button type="button" class="btn ghost small-btn" onClick={() => clearDemo()}>{t("demoClear")}</button>
     </div>
   );
@@ -54,7 +55,7 @@ function Choose({ demo }: { demo: boolean }) {
       {!demo && (
         <section class="card demo-cta">
           <p>{t("demoWhat")}</p>
-          <button type="button" class="btn ghost" onClick={() => loadDemo(today())}><Icon name="play" size={22} />{t("demoTry")}</button>
+          <button type="button" class="btn ghost" onClick={() => enterDemo()}><Icon name="play" size={22} />{t("demoTry")}</button>
         </section>
       )}
     </main>
