@@ -2,6 +2,7 @@
 import { cloneElement, isValidElement, type ComponentChildren, type JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { t, type Key } from "./i18n.ts";
+import { phrases } from "../core/prosody.ts";
 import { Icon, type IconName } from "./icons.tsx";
 
 export function go(path: string) { location.hash = path; }
@@ -110,15 +111,25 @@ function useHindiVoice(): SpeechSynthesisVoice | null | undefined {
 }
 
 /** "सुनें" button. Shown only when the phone has a Hindi voice; otherwise a short note. */
+let readRun = 0;
+
 export function ReadAloud({ text }: { text: string }) {
   const voice = useHindiVoice();
   if (voice === undefined) return null;
   if (voice === null) return <p class="small">{t("noHindiVoice")}</p>;
+  // Short phrases with pauses, numbers and dates as Hindi words, at a calm rate.
   const speak = () => {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.voice = voice; u.lang = voice.lang; u.rate = 0.9;
-    speechSynthesis.speak(u);
+    const run = ++readRun;
+    const list = phrases(text, "hi-IN");
+    const next = (i: number) => {
+      if (i >= list.length || run !== readRun) return;
+      const u = new SpeechSynthesisUtterance(list[i].text);
+      u.voice = voice; u.lang = voice.lang; u.rate = 0.9;
+      u.onend = () => setTimeout(() => next(i + 1), list[i].pauseMs);
+      speechSynthesis.speak(u);
+    };
+    next(0);
   };
   return <button type="button" class="btn ghost read-aloud" onClick={speak}><Icon name="speaker" size={22} />{t("readAloud")}</button>;
 }

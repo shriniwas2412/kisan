@@ -2,8 +2,11 @@
 // Hindi voice; otherwise the button is hidden. Spoken text repeats what is on screen.
 export type VoiceLike = { lang: string; name: string };
 
+import { rankVoices } from "./voiceRank.ts";
+
+/** The most natural Hindi voice on this phone (neural / Google / enhanced first), or null. */
 export function pickHindiVoice<V extends VoiceLike>(voices: V[]): V | null {
-  return voices.find(v => /^hi([-_]|$)/i.test(v.lang)) ?? null;
+  return (rankVoices(voices, "hi-IN")[0]?.voice as V | undefined) ?? null;
 }
 
 export function priceSpeech(p: { cropHi: string; modal: number; market: string; dateHi: string; snapshot: boolean }): string {
