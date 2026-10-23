@@ -193,6 +193,7 @@ const S = {
   workerSub: { hi: "किसान जोड़ें, मुलाकात लिखें", en: "Add farmers, log visits" },
   demoWhat: { hi: "पहली बार देख रहे हैं? नमूना डेटा के साथ ऐप आज़माएं। ये असली किसान नहीं हैं।", en: "First time here? Try the app with demo data. These are not real farmers." },
   demoTry: { hi: "नमूना देखें", en: "Try demo" },
+  tourStart: { hi: "टूर शुरू करें", en: "Start tour" },
   demoBanner: { hi: "नमूना डेटा", en: "Demo data" },
   demoBannerWhy: { hi: "48 किसान, मुलाकातें और पत्ती जांच बनावटी हैं, असली नतीजे नहीं। मंडी भाव एक पुराना असली स्नैपशॉट है।", en: "48 farmers, visits and leaf checks are synthetic, not field results. Mandi rates are an old real snapshot." },
   demoClear: { hi: "नमूना डेटा हटाएं", en: "Clear demo data" },

@@ -238,3 +238,11 @@ legend { font-weight: 600; padding: 0 4px; }
   .app:has(.tabs) { padding-bottom: 24px; }
   .list-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
 }
+
+/* guided demo tour */
+.tour { position: fixed; z-index: 50; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(560px, calc(100vw - 32px));
+  background: var(--surface); color: var(--ink); border-radius: var(--radius-lg); padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.25); border: 2px solid var(--green); }
+.tour h2 { margin: 4px 0; }
+.tour .row { display: flex; gap: 8px; }
+.tour-bar { height: 4px; background: rgba(0,0,0,.08); border-radius: 4px; margin: 8px 0 12px; overflow: hidden; }
+.tour-bar span { display: block; height: 100%; background: var(--green); }

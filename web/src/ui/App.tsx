@@ -6,6 +6,7 @@ import { Icon } from "./icons.tsx";
 import { clearDemo, isDemoLoaded, loadDemo, meta, onChange } from "../data/db.ts";
 import { DEMO_BUILD } from "../data/api.ts";
 import { currentMode, enterDemo } from "../data/demoMode.ts";
+import { Tour } from "./Tour.tsx";
 
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
@@ -35,10 +36,13 @@ function useDemo() {
 }
 
 function DemoBanner() {
+  const [tour, setTour] = useState(false);
   return (
     <div class="demo-banner" role="note">
       <p><b>Demo / नमूना</b> · {t("demoBannerWhy")}</p>
+      <button type="button" class="btn ghost small-btn" onClick={() => setTour(true)}>{t("tourStart")}</button>
       <button type="button" class="btn ghost small-btn" onClick={() => clearDemo()}>{t("demoClear")}</button>
+      {tour && <Tour onClose={() => setTour(false)} />}
     </div>
   );
 }

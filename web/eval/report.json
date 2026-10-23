@@ -1,0 +1,92 @@
+{
+  "source": "src/core/data/leaf_eval.json (kisan-agent training/eval_onnx.py, PlantDoc test split)",
+  "leaf": {
+    "n": 236,
+    "top1": 0.428,
+    "top3": 0.7712,
+    "points": [
+      {
+        "threshold": 0,
+        "answered": 236,
+        "correct": 101,
+        "coverage": 1,
+        "accuracy": 0.428,
+        "ci95": [
+          0.366,
+          0.492
+        ],
+        "risk": 0.572
+      },
+      {
+        "threshold": 0.4,
+        "answered": 169,
+        "correct": 93,
+        "coverage": 0.716,
+        "accuracy": 0.55,
+        "ci95": [
+          0.475,
+          0.623
+        ],
+        "risk": 0.45
+      },
+      {
+        "threshold": 0.5,
+        "answered": 111,
+        "correct": 76,
+        "coverage": 0.47,
+        "accuracy": 0.685,
+        "ci95": [
+          0.593,
+          0.764
+        ],
+        "risk": 0.315
+      },
+      {
+        "threshold": 0.6,
+        "answered": 68,
+        "correct": 52,
+        "coverage": 0.288,
+        "accuracy": 0.765,
+        "ci95": [
+          0.651,
+          0.85
+        ],
+        "risk": 0.235
+      },
+      {
+        "threshold": 0.7,
+        "answered": 34,
+        "correct": 25,
+        "coverage": 0.144,
+        "accuracy": 0.735,
+        "ci95": [
+          0.569,
+          0.854
+        ],
+        "risk": 0.265
+      }
+    ]
+  },
+  "mandi": [
+    {
+      "case": "fresh fetch, report dated today",
+      "shown": "today"
+    },
+    {
+      "case": "fresh fetch, latest report older",
+      "shown": "older"
+    },
+    {
+      "case": "upstream down, last-good cache",
+      "shown": "stale"
+    },
+    {
+      "case": "upstream down, no cache",
+      "shown": "none"
+    },
+    {
+      "case": "demo snapshot (no server)",
+      "shown": "stale"
+    }
+  ]
+}
