@@ -47,10 +47,11 @@ async function recordFailure(env: Env, keys: string[], at: number) {
 
 let dummyHash: Promise<string> | null = null;
 
-export function requireUser(roles: readonly string[] = ROLES): MiddlewareHandler<{ Bindings: Env; Variables: Vars }> {
+/** `now` is the app clock, so tokens are checked against the same time they were issued with. */
+export function requireUser(roles: readonly string[] = ROLES, now: () => number = Date.now): MiddlewareHandler<{ Bindings: Env; Variables: Vars }> {
   return async (c, next) => {
     const token = getCookie(c, COOKIE);
-    const claims = token ? await verifyJwt(token, secret(c.env)) : null;
+    const claims = token ? await verifyJwt(token, secret(c.env), Math.floor(now() / 1000)) : null;
     if (!claims) return c.json({ error: "sign in required" }, 401);
     if (!roles.includes(claims.role)) return c.json({ error: "not allowed for this role" }, 403);
     c.set("user", claims);
@@ -82,7 +83,7 @@ export function authRoutes(now: () => number = Date.now) {
     const ip = await ipKey(c, c.env);
     if (await failures(c.env, ip, now() - WINDOW_MS) >= MAX_PER_IP) return c.json({ error: "too many attempts, try again later" }, 429);
     const token = getCookie(c, COOKIE);
-    const claims = token ? await verifyJwt(token, secret(c.env)) : null;
+    const claims = token ? await verifyJwt(token, secret(c.env), Math.floor(now() / 1000)) : null;
     if (claims?.role !== "admin") {
       await recordFailure(c.env, [ip], now());
       return c.json({ error: "only an admin can add accounts" }, 403);
@@ -125,7 +126,7 @@ export function authRoutes(now: () => number = Date.now) {
     return c.json({ ok: true });
   });
 
-  app.get("/me", requireUser(), c => {
+  app.get("/me", requireUser(ROLES, now), c => {
     const u = c.get("user");
     return c.json({ user: { id: u.sub, name: u.name, role: u.role } });
   });

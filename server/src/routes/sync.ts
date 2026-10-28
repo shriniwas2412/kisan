@@ -110,7 +110,7 @@ const maxTs = (a: string, b: string) => (a > b ? a : b);
 
 export function syncRoutes(now: () => number = Date.now) {
   const app = new Hono<{ Bindings: Env; Variables: { user: Claims } }>();
-  app.use("*", requireUser());
+  app.use("*", requireUser(undefined, now));
 
   app.post("/", async c => {
     const db = c.env.DB;
